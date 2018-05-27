@@ -1,0 +1,12 @@
+*.oclbin
+*.o
+*.depend
+*.layout
+*.oclbin
+vanitygen
+oclvanitygen
+oclvanityminer
+keyconv
+obj/
+bin/
+build/
