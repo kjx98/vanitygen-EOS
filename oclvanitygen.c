@@ -63,7 +63,6 @@ usage(const char *name)
 "-1            Stop after first match\n"
 "-a <amount>   Stop after generating <amount> addresses/keys\n"
 "-Y <version>  Specify private key version (-X provides public key)\n"
-"-F <format>   Generate address with the given format (pubkey, compressed)\n"
 "-P <pubkey>   Use split-key method with <pubkey> as base public key\n"
 "-e            Encrypt private keys, prompt for password\n"
 "-E <password> Encrypt private keys with <password> (UNSAFE)\n"
@@ -136,7 +135,7 @@ main(int argc, char **argv)
 	int i;
 
 	while ((opt = getopt(argc, argv,
-			     "vqrik1zY:F:eE:p:P:d:w:t:g:b:VSh?f:o:s:D:Z:a:")) != -1) {
+			     "vqrik1zY:eE:p:P:d:w:t:g:b:VSh?f:o:s:D:Z:a:")) != -1) {
 		switch (opt) {
 		case 'r':
 			regex = 1;
@@ -166,16 +165,6 @@ main(int argc, char **argv)
 		case 'Y':
 			/* Overrides privtype of 'X' but leaves all else intact */
 			privtype = atoi(optarg);
-			break;
-		case 'F':
-			if (!strcmp(optarg, "compressed"))
-				compressed = 1;
-			else
-			if (strcmp(optarg, "pubkey")) {
-				fprintf(stderr,
-					"Invalid format '%s'\n", optarg);
-				return 1;
-			}
 			break;
 		case 'e':
 			prompt_password = 1;

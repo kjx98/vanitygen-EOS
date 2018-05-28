@@ -1246,7 +1246,10 @@ hash_ec_point(uint *hash_out, __global bn_word *xy, __global bn_word *zip)
 	bn_mul_mont(&c, &c, &zzi);  /* X / Z^2 */
 	bn_from_mont(&c, &c);
 
+#ifdef  OLD_BTC
 	wh = compressed_address ? 0x00000002 : 0x00000004;  /* POINT_CONVERSION_[UN]COMPRESSED */
+#endif
+	wh = 0x00000002;  /* POINT_CONVERSION_COMPRESSED */
 
 #define hash_ec_point_inner_3(i)		\
 	wl = wh;				\
@@ -1265,6 +1268,7 @@ hash_ec_point(uint *hash_out, __global bn_word *xy, __global bn_word *zip)
 	bn_mul_mont(&c, &c, &zzi);  /* Y / Z^3 */
 	bn_from_mont(&c, &c);
 
+#ifdef  OLD_BTC
 	if (!compressed_address) {
 		#define hash_ec_point_inner_5(i)			\
 			wl = wh;					\
@@ -1272,7 +1276,9 @@ hash_ec_point(uint *hash_out, __global bn_word *xy, __global bn_word *zip)
 			hash1[BN_NWORDS + i] = (wl << 24) | (wh >> 8);
 
 		bn_unroll(hash_ec_point_inner_5);
-	} else {
+	} else
+#endif
+	{
 		if (bn_is_odd(c)) {
 			hash1[0] |= 0x01000000; /* 0x03 for odd y */
 		}
