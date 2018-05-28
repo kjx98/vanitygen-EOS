@@ -746,6 +746,10 @@ get_prefix_ranges(int addrtype, const char *pfx, BIGNUM **result,
 	bnlow = BN_new();
 	bnhigh = BN_new();
 	p = strlen(pfx);
+	if (p > 3 && memcmp(pfx, "EOS", 3) == 0) {
+        pfx += 3;
+        p -= 3;
+	}
 	memset(binres, '1', b58len);
 	memcpy(binres, pfx, p);
 	bitsLen = keylen;

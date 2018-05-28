@@ -371,7 +371,7 @@ main(int argc, char **argv)
 
 	int i;
 
-	while ((opt = getopt(argc, argv, "cvqnrik1ezE:P:Y:t:h?f:o:s:Z:a:")) != -1) {
+	while ((opt = getopt(argc, argv, "vqnrik1ezE:P:Y:t:h?f:o:s:Z:a:")) != -1) {
 		switch (opt) {
 		case 'c':
 		        compressed = 1;

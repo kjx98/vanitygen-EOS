@@ -1527,21 +1527,21 @@ vg_ocl_prefix_rekey(vg_ocl_context_t *vocp)
 
 		if (i > vocp->voc_pattern_alloc) {
 			/* (re)allocate target buffer */
-			if (!vg_ocl_kernel_arg_alloc(vocp, -1, 5, 72 * i, 0))
+			if (!vg_ocl_kernel_arg_alloc(vocp, -1, 9, 72 * i, 0))
 				return -1;
 			vocp->voc_pattern_alloc = i;
 		}
 
 		/* Write range records */
 		ocl_targets_in = (unsigned char *)
-			vg_ocl_map_arg_buffer(vocp, 0, 5, 1);
+			vg_ocl_map_arg_buffer(vocp, 0, 9, 1);
 		if (!ocl_targets_in) {
 			fprintf(stderr,
 				"ERROR: Could not map hash target buffer\n");
 			return -1;
 		}
 		vg_context_addr_sort(vcp, ocl_targets_in);
-		vg_ocl_unmap_arg_buffer(vocp, 0, 5, ocl_targets_in);
+		vg_ocl_unmap_arg_buffer(vocp, 0, 9, ocl_targets_in);
 		vg_ocl_kernel_int_arg(vocp, -1, 4, i);
 
 		vocp->voc_pattern_rewrite = 0;
