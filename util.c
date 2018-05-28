@@ -235,8 +235,7 @@ vg_b58_decode_check(const char *input, void *buf, size_t len)
 
 	/* Buffer verified */
 	if (len) {
-		if (len > l)
-			len = l;
+		if (len > l) len = l;
 		memcpy(buf, xbuf, len);
 	}
 	res = l;
@@ -269,7 +268,7 @@ vg_encode_address(const EC_POINT *ppoint, const EC_GROUP *pgroup,
     memcpy(result, "EOS", 3);
     memcpy(binres, eckey_buf, 33);
     binres[0] = addrtype;
-    if (eckey_buf[key_len-1] & 1) binres[0] = 3; else binres[0] = 2;
+    if ((eckey_buf[key_len-1] & 1) == 0) binres[0] = 2;
     RIPEMD160(binres, 33, hash1);
     memcpy(binres+33, hash1, 4);
 #ifdef  ommit
@@ -296,10 +295,12 @@ vg_encode_address_compressed(const EC_POINT *ppoint, const EC_GROUP *pgroup,
 			   sizeof(eckey_buf),
 			   NULL);
 	pend = eckey_buf + 0x21;
-    binres[0] = addrtype;
-    SHA256(eckey_buf, pend - eckey_buf, hash1);
-    RIPEMD160(hash1, sizeof(hash1), &binres[1]);
-    vg_b58_encode_check(binres, sizeof(binres), result);
+    //binres[0] = addrtype;
+    memcpy(result, "EOS", 3);
+    memcpy(binres, eckey_buf, pend - eckey_buf);
+    RIPEMD160(binres, 33, hash1);
+    memcpy(binres+33, hash1, 4);
+    vg_b58_encode(binres, 37, result+3);
 }
 
 void
@@ -455,8 +456,7 @@ vg_protect_crypt(int parameter_group,
 			goto out;
 	}
 
-	if (parameter_group > (sizeof(protkey_parameters) /
-			       sizeof(protkey_parameters[0])))
+	if (parameter_group > (sizeof(protkey_parameters) / sizeof(protkey_parameters[0])))
 		goto out;
 	params = &protkey_parameters[parameter_group];
 
@@ -634,8 +634,7 @@ vg_protect_decode_privkey(EC_KEY *pkey, int *keytype,
 
 	res = vg_b58_decode_check(encoded, ecenc, sizeof(ecenc));
 
-	if ((res < 2) || (res > sizeof(ecenc)))
-		return 0;
+	if ((res < 2) || (res > sizeof(ecenc))) return 0;
 
 	switch (ecenc[0]) {
 	case 32:  restype = 128; break;

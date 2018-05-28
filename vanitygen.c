@@ -196,8 +196,11 @@ vg_thread_loop(void *arg)
 						 vxcp->vxc_bnctx);
 			assert(len == 65 || len == 33);
 
-            memcpy(vxcp->vxc_binres, eckey_buf, 33);
-            if (eckey_buf[len-1] & 1) vxcp->vxc_binres[0] = 3; else vxcp->vxc_binres[0] = 2;
+            if (vcp->vc_compressed) memcpy(vxcp->vxc_binres, eckey_buf, hash_len);
+            else {
+                memcpy(vxcp->vxc_binres, eckey_buf, 33);
+                if (eckey_buf[len-1] & 1) vxcp->vxc_binres[0] = 3; else vxcp->vxc_binres[0] = 2;
+            }
             //RIPEMD160(vxcp->vxc_binres, 33, hash1);
             //memcpy(vxcp->vxc_binres+33, hash1, 4);
 
@@ -315,7 +318,6 @@ usage(const char *name)
 "-1            Stop after first match\n"
 "-a <amount>   Stop after generating <amount> addresses/keys\n"
 "-Y <version>  Specify private key version (-X provides public key)\n"
-"-F <format>   Generate address with the given format (pubkey, compressed, script)\n"
 "-P <pubkey>   Specify base public key for piecewise key generation\n"
 "-e            Encrypt private keys, prompt for password\n"
 "-E <password> Encrypt private keys with <password> (UNSAFE)\n"
@@ -369,7 +371,7 @@ main(int argc, char **argv)
 
 	int i;
 
-	while ((opt = getopt(argc, argv, "vqnrik1ezE:P:Y:F:t:h?f:o:s:Z:a:")) != -1) {
+	while ((opt = getopt(argc, argv, "cvqnrik1ezE:P:Y:t:h?f:o:s:Z:a:")) != -1) {
 		switch (opt) {
 		case 'c':
 		        compressed = 1;
@@ -406,19 +408,6 @@ main(int argc, char **argv)
 			/* Overrides privtype of 'X' but leaves all else intact */
 			privtype = atoi(optarg);
  			break;
-		case 'F':
-			if (!strcmp(optarg, "script"))
-				format = VCF_SCRIPT;
-                        else
-                        if (!strcmp(optarg, "compressed"))
-                                compressed = 1;
-                        else
-			if (strcmp(optarg, "pubkey")) {
-				fprintf(stderr,
-					"Invalid format '%s'\n", optarg);
-				return 1;
-			}
-			break;
 		case 'P': {
 			if (pubkey_base != NULL) {
 				fprintf(stderr,

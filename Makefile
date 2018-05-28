@@ -3,7 +3,7 @@ CFLAGS=-ggdb -Wall -pthread
 OBJS=vanitygen.o keyconv.o pattern.o util.o base58.o
 PROGS=vanitygen keyconv oclvanitygen oclvanityminer
 LIBS+=-L/usr/local/ssl/lib -ldl
-CFLAGS+=-I/usr/local/ssl/include
+CFLAGS+=-I/usr/local/ssl/include -std=gnu99
 
 PLATFORM=$(shell uname -s)
 ifeq ($(PLATFORM),Darwin)
