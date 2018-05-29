@@ -1,6 +1,6 @@
 /*
- * Vanitygen, vanity bitcoin address generator
- * Copyright (C) 2011 <samr7@cs.washington.edu>
+ * Vanitygen EOS, vanity EOS address generator
+ * Copyright (C) 2018 <jkuang@21cn.com>
  *
  * Vanitygen is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,18 +56,14 @@ enum {
 
 #define VG_PROTKEY_MAX_B58 128
 
-extern int vg_protect_encode_privkey(char *out,
-				     const EC_KEY *pkey, int keytype,
-				     int parameter_group,
-				     const char *pass);
+extern int vg_protect_encode_privkey(char *out, const EC_KEY *pkey, int keytype,
+				     int parameter_group, const char *pass);
 extern int vg_protect_decode_privkey(EC_KEY *pkey, int *keytype,
 				     const char *encoded, const char *pass);
 
 extern int vg_pkcs8_encode_privkey(char *out, int outlen,
-				   const EC_KEY *pkey,
-				   const char *pass);
-extern int vg_pkcs8_decode_privkey(EC_KEY *pkey, const char *pem_in,
-				   const char *pass);
+				   const EC_KEY *pkey, const char *pass);
+extern int vg_pkcs8_decode_privkey(EC_KEY *pkey, const char *pem_in, const char *pass);
 
 extern int vg_decode_privkey_any(EC_KEY *pkey, int *addrtype,
 				 const char *input, const char *pass);

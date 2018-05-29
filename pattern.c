@@ -1,6 +1,6 @@
 /*
- * Vanitygen, vanity bitcoin address generator
- * Copyright (C) 2011 <samr7@cs.washington.edu>
+ * Vanitygen EOS, vanity EOS address generator
+ * Copyright (C) 2018 <jkuang@21cn.com>
  *
  * Vanitygen is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -83,8 +83,7 @@ vg_exec_context_upgrade_lock(vg_exec_context_t *vxcp)
 	vg_exec_context_t *tp;
 	vg_context_t *vcp;
 
-	if (vxcp->vxc_lockmode == 2)
-		return 0;
+	if (vxcp->vxc_lockmode == 2) return 0;
 
 	pthread_mutex_lock(&vg_thread_lock);
 
@@ -117,8 +116,7 @@ vg_exec_context_upgrade_lock(vg_exec_context_t *vxcp)
 			     tp = tp->vxc_next) {
 				if (tp->vxc_lockmode) {
 					assert(tp->vxc_lockmode != 2);
-					pthread_cond_wait(&vg_thread_upcond,
-							  &vg_thread_lock);
+					pthread_cond_wait(&vg_thread_upcond, &vg_thread_lock);
 					break;
 				}
 			}
@@ -184,8 +182,7 @@ vg_exec_context_del(vg_exec_context_t *vxcp)
 {
 	vg_exec_context_t *tp, **pprev;
 
-	if (vxcp->vxc_lockmode == 2)
-		vg_exec_context_downgrade_lock(vxcp);
+	if (vxcp->vxc_lockmode == 2) vg_exec_context_downgrade_lock(vxcp);
 
 	pthread_mutex_lock(&vg_thread_lock);
 	assert(vxcp->vxc_lockmode == 1);
@@ -198,8 +195,7 @@ vg_exec_context_del(vg_exec_context_t *vxcp)
 	assert(tp == vxcp);
 	*pprev = tp->vxc_next;
 
-	if (tp->vxc_stop)
-		pthread_cond_signal(&vg_thread_upcond);
+	if (tp->vxc_stop) pthread_cond_signal(&vg_thread_upcond);
 
 	BN_clear_free(vxcp->vxc_bntarg);
 	BN_clear_free(vxcp->vxc_bnbase);
@@ -213,8 +209,7 @@ vg_exec_context_del(vg_exec_context_t *vxcp)
 void
 vg_exec_context_yield(vg_exec_context_t *vxcp)
 {
-	if (vxcp->vxc_lockmode == 2)
-		vg_exec_context_downgrade_lock(vxcp);
+	if (vxcp->vxc_lockmode == 2) vg_exec_context_downgrade_lock(vxcp);
 
 	else if (vxcp->vxc_stop) {
 		assert(vxcp->vxc_lockmode == 1);
@@ -232,8 +227,7 @@ vg_exec_context_consolidate_key(vg_exec_context_t *vxcp)
 	if (vxcp->vxc_delta) {
 		BN_clear(vxcp->vxc_bntmp);
 		BN_set_word(vxcp->vxc_bntmp, vxcp->vxc_delta);
-		BN_add(vxcp->vxc_bntmp2,
-		       EC_KEY_get0_private_key(vxcp->vxc_key),
+		BN_add(vxcp->vxc_bntmp2, EC_KEY_get0_private_key(vxcp->vxc_key),
 		       vxcp->vxc_bntmp);
 		vg_set_privkey(vxcp->vxc_bntmp2, vxcp->vxc_key);
 		vxcp->vxc_delta = 0;
@@ -253,22 +247,17 @@ vg_exec_context_calc_address(vg_exec_context_t *vxcp)
 	pubkey = EC_POINT_new(pgroup);
 	EC_POINT_copy(pubkey, EC_KEY_get0_public_key(vxcp->vxc_key));
 	if (vxcp->vxc_vc->vc_pubkey_base) {
-		EC_POINT_add(pgroup,
-			     pubkey,
-			     pubkey,
-			     vxcp->vxc_vc->vc_pubkey_base,
-			     vxcp->vxc_bnctx);
+		EC_POINT_add(pgroup, pubkey, pubkey, vxcp->vxc_vc->vc_pubkey_base, vxcp->vxc_bnctx);
 	}
-	len = EC_POINT_point2oct(pgroup,
-				 pubkey,
+	len = EC_POINT_point2oct(pgroup, pubkey,
 				 vxcp->vxc_vc->vc_compressed ? POINT_CONVERSION_COMPRESSED : POINT_CONVERSION_UNCOMPRESSED,
-				 eckey_buf,
-				 sizeof(eckey_buf),
-				 vxcp->vxc_bnctx);
+				 eckey_buf, sizeof(eckey_buf), vxcp->vxc_bnctx);
     memcpy(vxcp->vxc_binres, eckey_buf, 33);
     if (eckey_buf[len-1] & 1) vxcp->vxc_binres[0] = 3; else vxcp->vxc_binres[0] = 2;
+#ifdef  ommit
     RIPEMD160(vxcp->vxc_binres, 33, hash1);
     memcpy(vxcp->vxc_binres+33, hash1, 4);
+#endif
 	EC_POINT_free(pubkey);
 }
 
@@ -302,8 +291,7 @@ vg_output_timing(vg_context_t *vcp, int cycle, struct timeval *last)
 	timersub(&tvnow, last, &tv);
 	memcpy(last, &tvnow, sizeof(*last));
 	mytime = tv.tv_usec + (1000000ULL * tv.tv_sec);
-	if (!mytime)
-		mytime = 1;
+	if (!mytime) mytime = 1;
 	rate = 0;
 
 	pthread_mutex_lock(&timing_mutex);
@@ -327,8 +315,7 @@ vg_output_timing(vg_context_t *vcp, int cycle, struct timeval *last)
 			tip->ti_last_rate = myrate;
 			rate += myrate;
 
-		} else
-			rate += tip->ti_last_rate;
+		} else rate += tip->ti_last_rate;
 	}
 	if (!mytip) {
 		mytip = (timing_info_t *) malloc(sizeof(*tip));
@@ -377,8 +364,7 @@ vg_context_thread_exit(vg_context_t *vcp)
 	for (ptip = &vcp->vc_timing_head, tip = *ptip;
 	     tip != NULL;
 	     ptip = &tip->ti_next, tip = *ptip) {
-		if (!pthread_equal(tip->ti_thread, me))
-			continue;
+		if (!pthread_equal(tip->ti_thread, me)) continue;
 		*ptip = tip->ti_next;
 		free(tip);
 		break;
@@ -421,23 +407,19 @@ vg_output_timing_console(vg_context_t *vcp, double count,
 	}
 
 	rem = sizeof(linebuf);
-	p = snprintf(linebuf, rem, "[%.2f %s][total %lld]",
-		     targ, unit, total);
+	p = snprintf(linebuf, rem, "[%.2f %s][total %lld]", targ, unit, total);
 	assert(p > 0);
 	rem -= p;
-	if (rem < 0)
-		rem = 0;
+	if (rem < 0) rem = 0;
 
 	if (vcp->vc_chance >= 1.0) {
 		prob = 1.0f - exp(-count/vcp->vc_chance);
 
 		if (prob <= 0.999) {
-			p = snprintf(&linebuf[p], rem, "[Prob %.1f%%]",
-				     prob * 100);
+			p = snprintf(&linebuf[p], rem, "[Prob %.1f%%]", prob * 100);
 			assert(p > 0);
 			rem -= p;
-			if (rem < 0)
-				rem = 0;
+			if (rem < 0) rem = 0;
 			p = sizeof(linebuf) - rem;
 		}
 
@@ -467,18 +449,15 @@ vg_output_timing_console(vg_context_t *vcp, double count,
 			}
 
 			if (time > 1000000) {
-				p = snprintf(&linebuf[p], rem,
-					     "[%d%% in %e%s]",
+				p = snprintf(&linebuf[p], rem, "[%d%% in %e%s]",
 					     (int) (100 * targ), time, unit);
 			} else {
-				p = snprintf(&linebuf[p], rem,
-					     "[%d%% in %.1f%s]",
+				p = snprintf(&linebuf[p], rem, "[%d%% in %.1f%s]",
 					     (int) (100 * targ), time, unit);
 			}
 			assert(p > 0);
 			rem -= p;
-			if (rem < 0)
-				rem = 0;
+			if (rem < 0) rem = 0;
 			p = sizeof(linebuf) - rem;
 		}
 	}
@@ -488,12 +467,10 @@ vg_output_timing_console(vg_context_t *vcp, double count,
 			p = snprintf(&linebuf[p], rem, "[Found %lld/%ld]",
 				     vcp->vc_found, vcp->vc_npatterns_start);
 		else
-			p = snprintf(&linebuf[p], rem, "[Found %lld]",
-				     vcp->vc_found);
+			p = snprintf(&linebuf[p], rem, "[Found %lld]", vcp->vc_found);
 		assert(p > 0);
 		rem -= p;
-		if (rem < 0)
-			rem = 0;
+		if (rem < 0) rem = 0;
 	}
 
 	if (rem) {
@@ -518,11 +495,7 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 	if (vcp->vc_pubkey_base) {
 		ppnt = EC_POINT_new(EC_KEY_get0_group(pkey));
 		EC_POINT_copy(ppnt, EC_KEY_get0_public_key(pkey));
-		EC_POINT_add(EC_KEY_get0_group(pkey),
-			     ppnt,
-			     ppnt,
-			     vcp->vc_pubkey_base,
-			     NULL);
+		EC_POINT_add(EC_KEY_get0_group(pkey), ppnt, ppnt, vcp->vc_pubkey_base, NULL);
 		free_ppnt = 1;
 		keytype = "PrivkeyPart";
 	} else {
@@ -531,24 +504,19 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 
 	assert(EC_KEY_check_key(pkey));
 	if (vcp->vc_compressed)
-		vg_encode_address_compressed(ppnt,
-				  EC_KEY_get0_group(pkey),
+		vg_encode_address_compressed(ppnt, EC_KEY_get0_group(pkey),
 				  vcp->vc_pubkeytype, addr_buf);
 	else
-		vg_encode_address(ppnt,
-				  EC_KEY_get0_group(pkey),
+		vg_encode_address(ppnt, EC_KEY_get0_group(pkey),
 				  vcp->vc_pubkeytype, addr_buf);
 
 	if (vcp->vc_key_protect_pass) {
-		len = vg_protect_encode_privkey(privkey_buf,
-						pkey, vcp->vc_privtype,
-						VG_PROTKEY_DEFAULT,
-						vcp->vc_key_protect_pass);
+		len = vg_protect_encode_privkey(privkey_buf, pkey, vcp->vc_privtype,
+						VG_PROTKEY_DEFAULT, vcp->vc_key_protect_pass);
 		if (len) {
 			keytype = "Protkey";
 		} else {
-			fprintf(stderr,
-				"ERROR: could not password-protect key\n");
+			fprintf(stderr, "ERROR: could not password-protect key\n");
 			vcp->vc_key_protect_pass = NULL;
 		}
 	}
@@ -598,8 +566,7 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 			printf( "%s\n", privkey_buf);
 		}
 		else {
-			printf("%sAddress: %s\n"
-			       "%s%s: %s\n",
+			printf("%sAddress: %s\n%s%s: %s\n",
 			       ticker, addr_buf, ticker, keytype, privkey_buf);
 		}
 	}
@@ -607,9 +574,7 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 	if (vcp->vc_result_file) {
 		FILE *fp = fopen(vcp->vc_result_file, "a");
 		if (!fp) {
-			fprintf(stderr,
-				"ERROR: could not open result file: %s\n",
-				strerror(errno));
+			fprintf(stderr, "ERROR: could not open result file: %s\n", strerror(errno));
 		} else {
 			if (vcp->vc_csv) {
 				fprintf(fp, "%.*s,%s,", tickerlength,ticker, pattern);
@@ -619,15 +584,13 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 			}
 			else {
 				fprintf(fp, "%sPattern: %s\n", ticker, pattern);
-				fprintf(fp, "%sAddress: %s\n"
-					"%s%s: %s\n",
+				fprintf(fp, "%sAddress: %s\n%s%s: %s\n",
 					ticker, addr_buf, ticker, keytype, privkey_buf);
 				fclose(fp);
 			}
 		}
 	}
-	if (free_ppnt)
-		EC_POINT_free(ppnt);
+	if (free_ppnt) EC_POINT_free(ppnt);
 }
 
 
@@ -639,8 +602,7 @@ vg_context_free(vg_context_t *vcp)
 }
 
 int
-vg_context_add_patterns(vg_context_t *vcp,
-			const char ** const patterns, int npatterns)
+vg_context_add_patterns(vg_context_t *vcp, const char ** const patterns, int npatterns)
 {
 	vcp->vc_pattern_generation++;
 	return vcp->vc_add_patterns(vcp, patterns, npatterns);
@@ -656,7 +618,8 @@ vg_context_clear_all_patterns(vg_context_t *vcp)
 int
 vg_context_addr_sort(vg_context_t *vcp, void *buf)
 {
-    return vg_prefix_addr_sort(vcp, buf);
+	if (!vcp->vc_addr_sort) return 0;
+	return vcp->vc_addr_sort(vcp, buf);
 }
 
 int
@@ -666,13 +629,10 @@ vg_context_start_threads(vg_context_t *vcp)
 	int res;
 
 	for (vxcp = vcp->vc_threads; vxcp != NULL; vxcp = vxcp->vxc_next) {
-		res = pthread_create((pthread_t *) &vxcp->vxc_pthread,
-				     NULL,
-				     (void *(*)(void *)) vxcp->vxc_threadfunc,
-				     vxcp);
+		res = pthread_create((pthread_t *) &vxcp->vxc_pthread, NULL,
+				     (void *(*)(void *)) vxcp->vxc_threadfunc, vxcp);
 		if (res) {
-			fprintf(stderr, "ERROR: could not create thread: %d\n",
-				res);
+			fprintf(stderr, "ERROR: could not create thread: %d\n", res);
 			vg_context_stop_threads(vcp);
 			return -1;
 		}
@@ -695,8 +655,7 @@ vg_context_wait_for_completion(vg_context_t *vcp)
 	vg_exec_context_t *vxcp;
 
 	for (vxcp = vcp->vc_threads; vxcp != NULL; vxcp = vxcp->vxc_next) {
-		if (!vxcp->vxc_thread_active)
-			continue;
+		if (!vxcp->vxc_thread_active) continue;
 		pthread_join((pthread_t) vxcp->vxc_pthread, NULL);
 		vxcp->vxc_thread_active = 0;
 	}
@@ -707,8 +666,7 @@ vg_context_wait_for_completion(vg_context_t *vcp)
  * Find the bignum ranges that produce a given prefix.
  */
 static int
-get_prefix_ranges(int addrtype, const char *pfx, BIGNUM **result,
-		  BN_CTX *bnctx)
+get_prefix_ranges(int addrtype, const char *pfx, BIGNUM **result, BN_CTX *bnctx)
 {
 	int p;
 	int ret = -1;
@@ -868,8 +826,7 @@ vg_prefix_avl_search(avl_root_t *rootp, BIGNUM *targ)
 		} else {
 			if (BN_cmp(vp->vp_high, targ) < 0) {
 				itemp = itemp->ai_right;
-			} else
-				return vp;
+			} else return vp;
 		}
 	}
 	return NULL;
@@ -889,8 +846,7 @@ vg_prefix_avl_insert(avl_root_t *rootp, vg_prefix_t *vpnew)
 		} else {
 			if (BN_cmp(vp->vp_high, vpnew->vp_low) < 0) {
 				ptrp = &itemp->ai_right;
-			} else
-				return vp;
+			} else return vp;
 		}
 	}
 	vpnew->vp_item.ai_up = itemp;
@@ -905,8 +861,7 @@ vg_prefix_first(avl_root_t *rootp)
 {
 	avl_item_t *itemp;
 	itemp = avl_first(rootp);
-	if (itemp)
-		return avl_item_entry(itemp, vg_prefix_t, vp_item);
+	if (itemp) return avl_item_entry(itemp, vg_prefix_t, vp_item);
 	return NULL;
 }
 
@@ -935,8 +890,7 @@ vg_prefix_add(avl_root_t *rootp, const char *pattern, BIGNUM *low, BIGNUM *high)
 		vp->vp_high = high;
 		vp2 = vg_prefix_avl_insert(rootp, vp);
 		if (vp2 != NULL) {
-			fprintf(stderr,
-				"Prefix '%s' ignored, overlaps '%s'\n",
+			fprintf(stderr, "Prefix '%s' ignored, overlaps '%s'\n",
 				pattern, vp2->vp_pattern);
 			vg_prefix_free(vp);
 			vp = NULL;
@@ -969,8 +923,7 @@ vg_prefix_add_ranges(avl_root_t *rootp, const char *pattern, BIGNUM **ranges,
 
 	assert(ranges[0]);
 	vp = vg_prefix_add(rootp, pattern, ranges[0], ranges[1]);
-	if (!vp)
-		return NULL;
+	if (!vp) return NULL;
 
 	if (ranges[2]) {
 		vp2 = vg_prefix_add(rootp, pattern, ranges[2], ranges[3]);
@@ -982,18 +935,13 @@ vg_prefix_add_ranges(avl_root_t *rootp, const char *pattern, BIGNUM **ranges,
 
 	if (!master) {
 		vp->vp_sibling = vp2;
-		if (vp2)
-			vp2->vp_sibling = vp;
+		if (vp2) vp2->vp_sibling = vp;
 	} else if (vp2) {
 		vp->vp_sibling = vp2;
-		vp2->vp_sibling = (master->vp_sibling ?
-				   master->vp_sibling :
-				   master);
+		vp2->vp_sibling = (master->vp_sibling ? master->vp_sibling : master);
 		master->vp_sibling = vp;
 	} else {
-		vp->vp_sibling = (master->vp_sibling ?
-				  master->vp_sibling :
-				  master);
+		vp->vp_sibling = (master->vp_sibling ? master->vp_sibling : master);
 		master->vp_sibling = vp;
 	}
 	return vp;
@@ -1069,8 +1017,7 @@ prefix_case_iter_next(prefix_case_iter_t *cip)
 	nbits = cip->ci_nbits;
 	max = (1UL << nbits) - 1;
 	val = cip->ci_value + 1;
-	if (val > max)
-		return 0;
+	if (val > max) return 0;
 
 	for (i = 0, mask = 1; i < nbits; i++, mask <<= 1) {
 		if (val & mask)
@@ -1104,8 +1051,7 @@ vg_prefix_context_clear_all_patterns(vg_context_t *vcp)
 	unsigned long npfx_left = 0;
 
 	while (!avl_root_empty(&vcpp->vcp_avlroot)) {
-		vp = avl_item_entry(vcpp->vcp_avlroot.ar_root,
-				    vg_prefix_t, vp_item);
+		vp = avl_item_entry(vcpp->vcp_avlroot.ar_root, vg_prefix_t, vp_item);
 		vg_prefix_delete(&vcpp->vcp_avlroot, vp);
 		npfx_left++;
 	}
@@ -1139,8 +1085,7 @@ vg_prefix_context_next_difficulty(vg_prefix_context_t *vcpp,
 	dbuf = BN_bn2dec(bntmp2);
 	if (vcpp->base.vc_verbose > 0) {
 		if (vcpp->base.vc_npatterns > 1)
-			fprintf(stderr,
-				"Next match difficulty: %s (%ld prefixes)\n",
+			fprintf(stderr, "Next match difficulty: %s (%ld prefixes)\n",
 				dbuf, vcpp->base.vc_npatterns);
 		else
 			fprintf(stderr, "Difficulty: %s\n", dbuf);
@@ -1174,12 +1119,10 @@ vg_prefix_context_add_patterns(vg_context_t *vcp,
 	for (i = 0; i < npatterns; i++) {
 		if (!vcpp->vcp_caseinsensitive) {
 			vp = NULL;
-			ret = get_prefix_ranges(vcpp->base.vc_addrtype,
-						patterns[i],
+			ret = get_prefix_ranges(vcpp->base.vc_addrtype, patterns[i],
 						ranges, bnctx);
 			if (!ret) {
-				vp = vg_prefix_add_ranges(&vcpp->vcp_avlroot,
-							  patterns[i],
+				vp = vg_prefix_add_ranges(&vcpp->vcp_avlroot, patterns[i],
 							  ranges, NULL);
 			}
 
@@ -1194,16 +1137,14 @@ vg_prefix_context_add_patterns(vg_context_t *vcp,
 
 			if (caseiter.ci_nbits > 16) {
 				fprintf(stderr,
-					"WARNING: Prefix '%s' has "
-					"2^%d case-varied derivatives\n",
+					"WARNING: Prefix '%s' has 2^%d case-varied derivatives\n",
 					patterns[i], caseiter.ci_nbits);
 			}
 
 			case_impossible = 0;
 			vp = NULL;
 			do {
-				ret = get_prefix_ranges(vcpp->base.vc_addrtype,
-							caseiter.ci_prefix,
+				ret = get_prefix_ranges(vcpp->base.vc_addrtype, caseiter.ci_prefix,
 							ranges, bnctx);
 				if (ret == -2) {
 					case_impossible++;
@@ -1212,21 +1153,17 @@ vg_prefix_context_add_patterns(vg_context_t *vcp,
 				}
 				if (ret)
 					break;
-				vp2 = vg_prefix_add_ranges(&vcpp->vcp_avlroot,
-							   patterns[i],
-							   ranges,
-							   vp);
+				vp2 = vg_prefix_add_ranges(&vcpp->vcp_avlroot, patterns[i],
+							   ranges, vp);
 				if (!vp2) {
 					ret = -1;
 					break;
 				}
-				if (!vp)
-					vp = vp2;
+				if (!vp) vp = vp2;
 
 			} while (prefix_case_iter_next(&caseiter));
 
-			if (!vp && case_impossible)
-				ret = -2;
+			if (!vp && case_impossible) ret = -2;
 
 			if (ret && vp) {
 				vg_prefix_delete(&vcpp->vcp_avlroot, vp);
@@ -1235,8 +1172,7 @@ vg_prefix_context_add_patterns(vg_context_t *vcp,
 		}
 
 		if (ret == -2) {
-			fprintf(stderr,
-				"Prefix '%s' not possible\n", patterns[i]);
+			fprintf(stderr, "Prefix '%s' not possible\n", patterns[i]);
 			impossible++;
 		}
 
@@ -1256,9 +1192,7 @@ vg_prefix_context_add_patterns(vg_context_t *vcp,
 			BN_div(bntmp3, NULL, bntmp2, bntmp, bnctx);
 
 			dbuf = BN_bn2dec(bntmp3);
-			fprintf(stderr,
-				"Prefix difficulty: %20s %s\n",
-				dbuf, patterns[i]);
+			fprintf(stderr, "Prefix difficulty: %20s %s\n", dbuf, patterns[i]);
 			OPENSSL_free(dbuf);
 		}
 	}
@@ -1267,12 +1201,10 @@ vg_prefix_context_add_patterns(vg_context_t *vcp,
 	vcpp->base.vc_npatterns_start += npfx;
 
 	if (!npfx && impossible) {
-		fprintf(stderr,
-			"Hint: [5678]* for valid prefixes.\n");
+		fprintf(stderr, "Hint: [5678]* for valid prefixes.\n");
 	}
 
-	if (npfx)
-		vg_prefix_context_next_difficulty(vcpp, bntmp, bntmp2, bnctx);
+	if (npfx) vg_prefix_context_next_difficulty(vcpp, bntmp, bntmp2, bnctx);
 
 	ret = (npfx != 0);
 
@@ -1297,8 +1229,7 @@ vg_prefix_get_difficulty(int addrtype, const char *pattern)
 	result = BN_new();
 	bntmp = BN_new();
 
-	ret = get_prefix_ranges(addrtype,
-				pattern, ranges, bnctx);
+	ret = get_prefix_ranges(addrtype, pattern, ranges, bnctx);
 
 	if (ret == 0) {
 		BN_sub(bntmp, ranges[1], ranges[0]);
@@ -1344,15 +1275,14 @@ vg_prefix_test(vg_exec_context_t *vxcp)
 research:
 	vp = vg_prefix_avl_search(&vcpp->vcp_avlroot, vxcp->vxc_bntarg);
 	if (vp) {
-		if (vg_exec_context_upgrade_lock(vxcp))
-			goto research;
+		if (vg_exec_context_upgrade_lock(vxcp)) goto research;
 
 		vg_exec_context_consolidate_key(vxcp);
-		vcpp->base.vc_output_match(&vcpp->base, vxcp->vxc_key,
-					   vp->vp_pattern);
+		vcpp->base.vc_output_match(&vcpp->base, vxcp->vxc_key, vp->vp_pattern);
 
 		vcpp->base.vc_found++;
-		if (vcpp->base.vc_numpairs >= 1 && vcpp->base.vc_found >= vcpp->base.vc_numpairs) {
+		if (vcpp->base.vc_numpairs >= 1
+            && vcpp->base.vc_found >= vcpp->base.vc_numpairs) {
 			exit(1);
 		}
 		if (vcpp->base.vc_only_one) {
@@ -1361,12 +1291,8 @@ research:
 
 		if (vcpp->base.vc_remove_on_match) {
 			/* Subtract the range from the difficulty */
-			vg_prefix_range_sum(vp,
-					    vxcp->vxc_bntarg,
-					    vxcp->vxc_bntmp);
-			BN_sub(vxcp->vxc_bntmp,
-			       vcpp->vcp_difficulty,
-			       vxcp->vxc_bntarg);
+			vg_prefix_range_sum(vp, vxcp->vxc_bntarg, vxcp->vxc_bntmp);
+			BN_sub(vxcp->vxc_bntmp, vcpp->vcp_difficulty, vxcp->vxc_bntarg);
 			BN_copy(vcpp->vcp_difficulty, vxcp->vxc_bntmp);
 
 			vg_prefix_delete(&vcpp->vcp_avlroot,vp);
@@ -1374,8 +1300,7 @@ research:
 
 			if (!avl_root_empty(&vcpp->vcp_avlroot))
 				vg_prefix_context_next_difficulty(
-					vcpp, vxcp->vxc_bntmp,
-					vxcp->vxc_bntmp2,
+					vcpp, vxcp->vxc_bntmp, vxcp->vxc_bntmp2,
 					vxcp->vxc_bnctx);
 			vcpp->base.vc_pattern_generation++;
 		}
@@ -1394,7 +1319,7 @@ vg_prefix_addr_sort(vg_context_t *vcp, void *buf)
 	vg_prefix_t *vp;
 	unsigned char *cbuf = (unsigned char *) buf;
 	unsigned char bnbuf[40];
-	int nbytes, ncopy, nskip, npfx = 0;
+	int nbytes, ncopy, npfx = 0;
 
 	/*
 	 * Walk the prefix tree in order, copy the upper and lower bound
@@ -1407,24 +1332,17 @@ vg_prefix_addr_sort(vg_context_t *vcp, void *buf)
 
 		/* Low */
 		nbytes = BN_bn2bin(vp->vp_low, bnbuf);
-		ncopy = ((nbytes >= 33) ? 33 :
-			 ((nbytes > 4) ? (nbytes - 4) : 0));
-		nskip = (nbytes >= 33) ? (nbytes - 33) : 0;
-		if (ncopy < 33)
-			memset(cbuf, 0, 33 - ncopy);
-		memcpy(cbuf + (33 - ncopy), bnbuf + nskip, ncopy);
+		ncopy = ((nbytes >= 33) ? 33 : ((nbytes > 4) ? (nbytes - 4) : 0));
+        memset(cbuf, 0, 36);
+		memcpy(cbuf + (33 - ncopy), bnbuf, ncopy);
 		cbuf += 36;
 
 		/* High */
 		nbytes = BN_bn2bin(vp->vp_high, bnbuf);
-		ncopy = ((nbytes >= 33) ? 33 :
-			 ((nbytes > 4) ? (nbytes - 4) : 0));
-		nskip = (nbytes >= 33) ? (nbytes - 33) : 0;
-		if (ncopy < 33)
-			memset(cbuf, 0, 33 - ncopy);
-		memcpy(cbuf + (33 - ncopy),
-		       bnbuf + nskip,
-		       ncopy);
+		ncopy = ((nbytes >= 33) ? 33 : ((nbytes > 4) ? (nbytes - 4) : 0));
+		// if (ncopy < 33)
+		memset(cbuf, 0, 36);
+		memcpy(cbuf + (33 - ncopy), bnbuf, ncopy);
 		cbuf += 36;
 	}
 	return npfx;
@@ -1446,9 +1364,9 @@ vg_prefix_context_new(int addrtype, int privtype, int caseinsensitive)
 		vcpp->base.vc_chance = 0.0;
 		vcpp->base.vc_free = vg_prefix_context_free;
 		vcpp->base.vc_add_patterns = vg_prefix_context_add_patterns;
-		vcpp->base.vc_clear_all_patterns =
-			vg_prefix_context_clear_all_patterns;
+		vcpp->base.vc_clear_all_patterns = vg_prefix_context_clear_all_patterns;
 		vcpp->base.vc_test = vg_prefix_test;
+		vcpp->base.vc_addr_sort = vg_prefix_addr_sort;
 		avl_root_init(&vcpp->vcp_avlroot);
 		vcpp->vcp_difficulty = BN_new();
 		vcpp->vcp_caseinsensitive = caseinsensitive;
@@ -1489,8 +1407,7 @@ vg_regex_context_add_patterns(vg_context_t *vcp,
 			count = 16;
 		}
 		mem = (void **) malloc(3 * count * sizeof(void*));
-		if (!mem)
-			return 0;
+		if (!mem) return 0;
 
 		for (i = 0; i < vcrp->base.vc_npatterns; i++) {
 			mem[i] = vcrp->vcr_regex[i];
@@ -1498,8 +1415,7 @@ vg_regex_context_add_patterns(vg_context_t *vcp,
 			mem[(2 * count) + i] = (void *) vcrp->vcr_regex_pat[i];
 		}
 
-		if (vcrp->vcr_nalloc)
-			free(vcrp->vcr_regex);
+		if (vcrp->vcr_nalloc) free(vcrp->vcr_regex);
 		vcrp->vcr_regex = (pcre **) mem;
 		vcrp->vcr_regex_extra = (pcre_extra **) &mem[count];
 		vcrp->vcr_regex_pat = (const char **) &mem[2 * count];
@@ -1508,7 +1424,8 @@ vg_regex_context_add_patterns(vg_context_t *vcp,
 
 	nres = vcrp->base.vc_npatterns;
 	for (i = 0; i < npatterns; i++) {
-		vcrp->vcr_regex[nres] = pcre_compile(patterns[i], 0, &pcre_errptr, &pcre_erroffset, NULL);
+		vcrp->vcr_regex[nres] = pcre_compile(patterns[i], 0, &pcre_errptr,
+                                    &pcre_erroffset, NULL);
 		if (!vcrp->vcr_regex[nres]) {
 			const char *spaces = "                ";
 			fprintf(stderr, "%s\n", patterns[i]);
@@ -1516,8 +1433,7 @@ vg_regex_context_add_patterns(vg_context_t *vcp,
 				fprintf(stderr, "%s", spaces);
 				pcre_erroffset -= 16;
 			}
-			if (pcre_erroffset > 0)
-				fprintf(stderr, "%s", &spaces[16 - pcre_erroffset]);
+			if (pcre_erroffset > 0) fprintf(stderr, "%s", &spaces[16 - pcre_erroffset]);
 			fprintf(stderr, "^\nRegex error: %s\n", pcre_errptr);
 			continue;
 		}
@@ -1532,8 +1448,7 @@ vg_regex_context_add_patterns(vg_context_t *vcp,
 		nres += 1;
 	}
 
-	if (nres == vcrp->base.vc_npatterns)
-		return 0;
+	if (nres == vcrp->base.vc_npatterns) return 0;
 
 	vcrp->base.vc_npatterns_start += (nres - vcrp->base.vc_npatterns);
 	vcrp->base.vc_npatterns = nres;
@@ -1559,8 +1474,7 @@ vg_regex_context_free(vg_context_t *vcp)
 {
 	vg_regex_context_t *vcrp = (vg_regex_context_t *) vcp;
 	vg_regex_context_clear_all_patterns(vcp);
-	if (vcrp->vcr_nalloc)
-		free(vcrp->vcr_regex);
+	if (vcrp->vcr_nalloc) free(vcrp->vcr_regex);
 	free(vcrp);
 }
 
@@ -1612,10 +1526,8 @@ restart_loop:
 		goto out;
 	}
 	for (i = 0; i < nres; i++) {
-		d = pcre_exec(vcrp->vcr_regex[i],
-			      vcrp->vcr_regex_extra[i],
-			      &b58[p], (sizeof(b58) - 1) - p, 0,
-			      0,
+		d = pcre_exec(vcrp->vcr_regex[i], vcrp->vcr_regex_extra[i],
+			      &b58[p], (sizeof(b58) - 1) - p, 0, 0,
 			      re_vec, sizeof(re_vec)/sizeof(re_vec[0]));
 
 		if (d <= 0) {
@@ -1635,11 +1547,11 @@ restart_loop:
 			goto restart_loop;
 
 		vg_exec_context_consolidate_key(vxcp);
-		vcrp->base.vc_output_match(&vcrp->base, vxcp->vxc_key,
-					   vcrp->vcr_regex_pat[i]);
+		vcrp->base.vc_output_match(&vcrp->base, vxcp->vxc_key, vcrp->vcr_regex_pat[i]);
 		vcrp->base.vc_found++;
 
-		if (vcrp->base.vc_numpairs >= 1 && vcrp->base.vc_found >= vcrp->base.vc_numpairs) {
+		if (vcrp->base.vc_numpairs >= 1
+            && vcrp->base.vc_found >= vcrp->base.vc_numpairs) {
 			exit(1);
 		}
 		if (vcrp->base.vc_only_one) {
@@ -1658,8 +1570,7 @@ restart_loop:
 				goto out;
 			}
 			vcrp->vcr_regex[i] = vcrp->vcr_regex[nres];
-			vcrp->vcr_regex_extra[i] =
-				vcrp->vcr_regex_extra[nres];
+			vcrp->vcr_regex_extra[i] = vcrp->vcr_regex_extra[nres];
 			vcrp->vcr_regex_pat[i] = vcrp->vcr_regex_pat[nres];
 			vcrp->base.vc_npatterns = nres;
 			vcrp->base.vc_pattern_generation++;
@@ -1687,9 +1598,9 @@ vg_regex_context_new(int addrtype, int privtype)
 		vcrp->base.vc_chance = 0.0;
 		vcrp->base.vc_free = vg_regex_context_free;
 		vcrp->base.vc_add_patterns = vg_regex_context_add_patterns;
-		vcrp->base.vc_clear_all_patterns =
-			vg_regex_context_clear_all_patterns;
+		vcrp->base.vc_clear_all_patterns = vg_regex_context_clear_all_patterns;
 		vcrp->base.vc_test = vg_regex_test;
+		vcrp->base.vc_addr_sort = NULL;
 		vcrp->vcr_regex = NULL;
 		vcrp->vcr_nalloc = 0;
 	}

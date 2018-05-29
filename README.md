@@ -48,7 +48,6 @@ Example output of above command:
 >EOS Address: EOS518aMZ4X4Z7gxdSVmygP8hTHz5VwwezMHiLWxHnLRxJT9jztrF
 >EOS Privkey: 5KMMK9Eu1P5RnEdfF1UFMJUFWio7b1EEyjZyk9mGyNGnUixsAUs
   
-```
 -----
 Encrypting and Decrypting a vanitygen or oclvanitygen private key  
 -----  
@@ -81,7 +80,7 @@ Windows: `keyconv.exe -d yTYFUWAsgFmMxCbKtu3RdrrJXosZrjxiQFA2o43neB4jPpfLe5owNNr
   
 **If you found this repo useful, please consider a donation.  Thank You!**  
   
- * Donate Bitcoin: 168158z53FpjEfMX6uneEZDPfxeM4hifqc
+ * Donate Bitcoin: 189182eexobQMBp7uXDQWWhUC2ptT1jWfU
  * Donate LTCcoin: LiVeShML2LEHBkRmjuiRBCUgEhtRdEtSst
  * Donate Ethereum or Ethereum Classic: 0x9672500b5355f410ecb01d1c4fe26e24acdc068c
  * Donate Monero: 49K25rZnQW6N3HaBDpPbq2DvbV8fezafaVCom5LkZNGqhLRFpHPVNyJbror58tBXejWPq5iy3EqU255MxnymRSsnKAbY8Aw

@@ -45,14 +45,12 @@ bool b58dec(void *bin, size_t *binszp, const unsigned char *b58, size_t b58sz)
 	uint32_t zeromask = bytesleft ? (0xffffffff << (bytesleft * 8)) : 0;
 	unsigned zerocount = 0;
 
-	if (!b58sz)
-		b58sz = strlen((const char *)b58);
+	if (!b58sz) b58sz = strlen((const char *)b58);
 
 	memset(outi, 0, outisz * sizeof(*outi));
 
 	// Leading zeros, just count
-	for (i = 0; i < b58sz && b58u[i] == '1'; ++i)
-		++zerocount;
+	for (i = 0; i < b58sz && b58u[i] == '1'; ++i) ++zerocount;
 
 	for ( ; i < b58sz; ++i)
 	{
@@ -102,8 +100,7 @@ bool b58dec(void *bin, size_t *binszp, const unsigned char *b58, size_t b58sz)
 	binu = bin;
 	for (i = 0; i < binsz; ++i)
 	{
-		if (binu[i])
-			break;
+		if (binu[i]) break;
 		--*binszp;
 	}
 	*binszp += zerocount;
