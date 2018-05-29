@@ -97,8 +97,7 @@ vg_thread_loop(void *arg)
 	}
 
 	BN_set_word(vxcp->vxc_bntmp, ptarraysize);
-	EC_POINT_mul(pgroup, pbatchinc, vxcp->vxc_bntmp, NULL, NULL,
-		     vxcp->vxc_bnctx);
+	EC_POINT_mul(pgroup, pbatchinc, vxcp->vxc_bntmp, NULL, NULL, vxcp->vxc_bnctx);
 	EC_POINT_make_affine(pgroup, pbatchinc, vxcp->vxc_bnctx);
 
 	npoints = 0;
@@ -121,11 +120,8 @@ vg_thread_loop(void *arg)
 			npoints = 0;
 
 			/* Determine rekey interval */
-			EC_GROUP_get_order(pgroup, vxcp->vxc_bntmp,
-					   vxcp->vxc_bnctx);
-			BN_sub(vxcp->vxc_bntmp2,
-			       vxcp->vxc_bntmp,
-			       EC_KEY_get0_private_key(pkey));
+			EC_GROUP_get_order(pgroup, vxcp->vxc_bntmp, vxcp->vxc_bnctx);
+			BN_sub(vxcp->vxc_bntmp2, vxcp->vxc_bntmp, EC_KEY_get0_private_key(pkey));
 			rekey_at = BN_get_word(vxcp->vxc_bntmp2);
 			if (/*(rekey_at == BN_MASK2) ||*/ (rekey_at > rekey_max))
 				rekey_at = rekey_max;
@@ -138,18 +134,13 @@ vg_thread_loop(void *arg)
 			vxcp->vxc_delta = 0;
 
 			if (vcp->vc_pubkey_base)
-				EC_POINT_add(pgroup,
-					     ppnt[0],
-					     ppnt[0],
-					     vcp->vc_pubkey_base,
+				EC_POINT_add(pgroup, ppnt[0], ppnt[0], vcp->vc_pubkey_base,
 					     vxcp->vxc_bnctx);
 
 			for (nbatch = 1;
 			     (nbatch < ptarraysize) && (npoints < rekey_at);
 			     nbatch++, npoints++) {
-				EC_POINT_add(pgroup,
-					     ppnt[nbatch],
-					     ppnt[nbatch-1],
+				EC_POINT_add(pgroup, ppnt[nbatch], ppnt[nbatch-1],
 					     pgen, vxcp->vxc_bnctx);
 			}
 
@@ -166,10 +157,7 @@ vg_thread_loop(void *arg)
 			for (nbatch = 0;
 			     (nbatch < ptarraysize) && (npoints < rekey_at);
 			     nbatch++, npoints++) {
-				EC_POINT_add(pgroup,
-					     ppnt[nbatch],
-					     ppnt[nbatch],
-					     pbatchinc,
+				EC_POINT_add(pgroup, ppnt[nbatch], ppnt[nbatch], pbatchinc,
 					     vxcp->vxc_bnctx);
 			}
 		}
@@ -191,9 +179,7 @@ vg_thread_loop(void *arg)
 			/* Hash the public key */
 			len = EC_POINT_point2oct(pgroup, ppnt[i],
 						 (vcp->vc_compressed)?POINT_CONVERSION_COMPRESSED:POINT_CONVERSION_UNCOMPRESSED,
-						 eckey_buf,
-						 (vcp->vc_compressed)?33:65,
-						 vxcp->vxc_bnctx);
+						 eckey_buf, (vcp->vc_compressed)?33:65, vxcp->vxc_bnctx);
 			assert(len == 65 || len == 33);
 
             if (vcp->vc_compressed) memcpy(vxcp->vxc_binres, eckey_buf, hash_len);
@@ -220,8 +206,7 @@ vg_thread_loop(void *arg)
 		c += i;
 		if (c >= output_interval) {
 			output_interval = vg_output_timing(vcp, c, &tvstart);
-			if (output_interval > 250000)
-				output_interval = 250000;
+			if (output_interval > 250000) output_interval = 250000;
 			c = 0;
 		}
 
@@ -233,10 +218,8 @@ out:
 	vg_context_thread_exit(vcp);
 
 	for (i = 0; i < ptarraysize; i++)
-		if (ppnt[i])
-			EC_POINT_free(ppnt[i]);
-	if (pbatchinc)
-		EC_POINT_free(pbatchinc);
+		if (ppnt[i]) EC_POINT_free(ppnt[i]);
+	if (pbatchinc) EC_POINT_free(pbatchinc);
 	return NULL;
 }
 
@@ -253,12 +236,10 @@ count_processors(void)
 	int count = 0;
 
 	fp = fopen("/proc/cpuinfo", "r");
-	if (!fp)
-		return -1;
+	if (!fp) return -1;
 
 	while (fgets(buf, sizeof(buf), fp)) {
-		if (!strncmp(buf, "processor\t", 10))
-			count += 1;
+		if (!strncmp(buf, "processor\t", 10)) count += 1;
 	}
 	fclose(fp);
 #endif
@@ -275,8 +256,7 @@ start_threads(vg_context_t *vcp, int nthreads)
 		/* Determine the number of threads */
 		nthreads = count_processors();
 		if (nthreads <= 0) {
-			fprintf(stderr,
-				"ERROR: could not determine processor count\n");
+			fprintf(stderr, "ERROR: could not determine processor count\n");
 			nthreads = 1;
 		}
 	}
@@ -286,8 +266,7 @@ start_threads(vg_context_t *vcp, int nthreads)
 	}
 
 	while (--nthreads) {
-		if (pthread_create(&thread, NULL, vg_thread_loop, vcp))
-			return 0;
+		if (pthread_create(&thread, NULL, vg_thread_loop, vcp)) return 0;
 	}
 
 	vg_thread_loop(vcp);
@@ -410,18 +389,15 @@ main(int argc, char **argv)
  			break;
 		case 'P': {
 			if (pubkey_base != NULL) {
-				fprintf(stderr,
-					"Multiple base pubkeys specified\n");
+				fprintf(stderr, "Multiple base pubkeys specified\n");
 				return 1;
 			}
 			EC_KEY *pkey = vg_exec_context_new_key();
 			pubkey_base = EC_POINT_hex2point(
-				EC_KEY_get0_group(pkey),
-				optarg, NULL, NULL);
+				EC_KEY_get0_group(pkey), optarg, NULL, NULL);
 			EC_KEY_free(pkey);
 			if (pubkey_base == NULL) {
-				fprintf(stderr,
-					"Invalid base pubkey\n");
+				fprintf(stderr, "Invalid base pubkey\n");
 				return 1;
 			}
 			break;
@@ -436,30 +412,25 @@ main(int argc, char **argv)
 		case 't':
 			nthreads = atoi(optarg);
 			if (nthreads == 0) {
-				fprintf(stderr,
-					"Invalid thread count '%s'\n", optarg);
+				fprintf(stderr, "Invalid thread count '%s'\n", optarg);
 				return 1;
 			}
 			break;
 		case 'f':
 			if (npattfp >= MAX_FILE) {
-				fprintf(stderr,
-					"Too many input files specified\n");
+				fprintf(stderr, "Too many input files specified\n");
 				return 1;
 			}
 			if (!strcmp(optarg, "-")) {
 				if (pattstdin) {
-					fprintf(stderr, "ERROR: stdin "
-						"specified multiple times\n");
+					fprintf(stderr, "ERROR: stdin specified multiple times\n");
 					return 1;
 				}
 				fp = stdin;
 			} else {
 				fp = fopen(optarg, "r");
 				if (!fp) {
-					fprintf(stderr,
-						"Could not open %s: %s\n",
-						optarg, strerror(errno));
+					fprintf(stderr, "Could not open %s: %s\n", optarg, strerror(errno));
 					return 1;
 				}
 			}
@@ -469,16 +440,14 @@ main(int argc, char **argv)
 			break;
 		case 'o':
 			if (result_file) {
-				fprintf(stderr,
-					"Multiple output files specified\n");
+				fprintf(stderr, "Multiple output files specified\n");
 				return 1;
 			}
 			result_file = optarg;
 			break;
 		case 's':
 			if (seedfile != NULL) {
-				fprintf(stderr,
-					"Multiple RNG seeds specified\n");
+				fprintf(stderr, "Multiple RNG seeds specified\n");
 				return 1;
 			}
 			seedfile = optarg;
@@ -497,15 +466,6 @@ main(int argc, char **argv)
 			return 1;
 		}
 	}
-
-#if OPENSSL_VERSION_NUMBER < 0x10000000L
-	/* Complain about older versions of OpenSSL */
-	if (verbose > 0) {
-		fprintf(stderr,
-			"WARNING: Built with " OPENSSL_VERSION_TEXT "\n"
-			"WARNING: Use OpenSSL 1.0.0d+ for best performance\n");
-	}
-#endif
 
 	if (caseinsensitive && regex)
 		fprintf(stderr,
@@ -529,8 +489,7 @@ main(int argc, char **argv)
 			return 1;
 		}
 		if (verbose > 0) {
-			fprintf(stderr,
-				"Read %d bytes from RNG seed file\n", opt);
+			fprintf(stderr, "Read %d bytes from RNG seed file\n", opt);
 		}
 	}
 
@@ -538,8 +497,7 @@ main(int argc, char **argv)
 		vcp = vg_regex_context_new(addrtype, privtype);
 
 	} else {
-		vcp = vg_prefix_context_new(addrtype, privtype,
-					    caseinsensitive);
+		vcp = vg_prefix_context_new(addrtype, privtype, caseinsensitive);
 	}
 
 	vcp->vc_compressed = compressed;
@@ -566,9 +524,7 @@ main(int argc, char **argv)
 		patterns = &argv[optind];
 		npatterns = argc - optind;
 
-		if (!vg_context_add_patterns(vcp,
-					     (const char ** const) patterns,
-					     npatterns))
+		if (!vg_context_add_patterns(vcp, (const char ** const) patterns, npatterns))
 		return 1;
 	}
 
@@ -584,9 +540,7 @@ main(int argc, char **argv)
 		if (!regex)
 			vg_prefix_context_set_case_insensitive(vcp, pattfpi[i]);
 
-		if (!vg_context_add_patterns(vcp,
-					     (const char ** const) patterns,
-					     npatterns))
+		if (!vg_context_add_patterns(vcp, (const char ** const) patterns, npatterns))
 		return 1;
 	}
 
@@ -596,26 +550,22 @@ main(int argc, char **argv)
 	}
 
 	if (prompt_password) {
-		if (!vg_read_password(pwbuf, sizeof(pwbuf)))
-			return 1;
+		if (!vg_read_password(pwbuf, sizeof(pwbuf))) return 1;
 		key_password = pwbuf;
 	}
 	vcp->vc_key_protect_pass = key_password;
 	if (key_password) {
 		if (!vg_check_password_complexity(key_password, verbose))
-			fprintf(stderr,
-				"WARNING: Protecting private keys with "
+			fprintf(stderr, "WARNING: Protecting private keys with "
 				"weak password\n");
 	}
 
 	if ((verbose > 0) && regex && (vcp->vc_npatterns > 1))
-		fprintf(stderr,
-			"Regular expressions: %ld\n", vcp->vc_npatterns);
+		fprintf(stderr, "Regular expressions: %ld\n", vcp->vc_npatterns);
 
 	if (simulate)
 		return 0;
 
-	if (!start_threads(vcp, nthreads))
-		return 1;
+	if (!start_threads(vcp, nthreads)) return 1;
 	return 0;
 }

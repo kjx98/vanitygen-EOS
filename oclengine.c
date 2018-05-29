@@ -204,8 +204,7 @@ vg_ocl_device_getplatform(cl_device_id did)
 	cl_int ret;
 	cl_platform_id val;
 	size_t size_ret;
-	ret = clGetDeviceInfo(did, CL_DEVICE_PLATFORM,
-			      sizeof(val), &val, &size_ret);
+	ret = clGetDeviceInfo(did, CL_DEVICE_PLATFORM, sizeof(val), &val, &size_ret);
 	if (ret != CL_SUCCESS) {
 		fprintf(stderr, "clGetDeviceInfo(CL_DEVICE_PLATFORM): %s",
 			vg_ocl_strerror(ret));
@@ -219,8 +218,7 @@ vg_ocl_device_gettype(cl_device_id did)
 	cl_int ret;
 	cl_device_type val;
 	size_t size_ret;
-	ret = clGetDeviceInfo(did, CL_DEVICE_TYPE,
-			      sizeof(val), &val, &size_ret);
+	ret = clGetDeviceInfo(did, CL_DEVICE_TYPE, sizeof(val), &val, &size_ret);
 	if (ret != CL_SUCCESS) {
 		fprintf(stderr, "clGetDeviceInfo(CL_DEVICE_TYPE): %s",
 			vg_ocl_strerror(ret));
@@ -234,12 +232,9 @@ vg_ocl_device_getstr(cl_device_id did, cl_device_info param)
 	static char device_str[1024];
 	cl_int ret;
 	size_t size_ret;
-	ret = clGetDeviceInfo(did, param,
-			      sizeof(device_str), device_str,
-			      &size_ret);
+	ret = clGetDeviceInfo(did, param, sizeof(device_str), device_str, &size_ret);
 	if (ret != CL_SUCCESS) {
-		snprintf(device_str, sizeof(device_str),
-			 "clGetDeviceInfo(%d): %s",
+		snprintf(device_str, sizeof(device_str), "clGetDeviceInfo(%d): %s",
 			 param, vg_ocl_strerror(ret));
 	}
 	return device_str;
@@ -253,8 +248,7 @@ vg_ocl_device_getsizet(cl_device_id did, cl_device_info param)
 	size_t size_ret;
 	ret = clGetDeviceInfo(did, param, sizeof(val), &val, &size_ret);
 	if (ret != CL_SUCCESS) {
-		fprintf(stderr,
-			"clGetDeviceInfo(%d): %s", param, vg_ocl_strerror(ret));
+		fprintf(stderr, "clGetDeviceInfo(%d): %s", param, vg_ocl_strerror(ret));
 	}
 	return val;
 }
@@ -267,8 +261,7 @@ vg_ocl_device_getulong(cl_device_id did, cl_device_info param)
 	size_t size_ret;
 	ret = clGetDeviceInfo(did, param, sizeof(val), &val, &size_ret);
 	if (ret != CL_SUCCESS) {
-		fprintf(stderr,
-			"clGetDeviceInfo(%d): %s", param, vg_ocl_strerror(ret));
+		fprintf(stderr, "clGetDeviceInfo(%d): %s", param, vg_ocl_strerror(ret));
 	}
 	return val;
 }
@@ -281,8 +274,7 @@ vg_ocl_device_getuint(cl_device_id did, cl_device_info param)
 	size_t size_ret;
 	ret = clGetDeviceInfo(did, param, sizeof(val), &val, &size_ret);
 	if (ret != CL_SUCCESS) {
-		fprintf(stderr,
-			"clGetDeviceInfo(%d): %s", param, vg_ocl_strerror(ret));
+		fprintf(stderr, "clGetDeviceInfo(%d): %s", param, vg_ocl_strerror(ret));
 	}
 	return val;
 }
@@ -340,11 +332,8 @@ vg_ocl_buildlog(vg_ocl_context_t *vocp, cl_program prog)
 	int off = 0;
 	cl_int ret;
 
-	ret = clGetProgramBuildInfo(prog,
-				    vocp->voc_ocldid,
-				    CL_PROGRAM_BUILD_LOG,
-				    0, NULL,
-				    &logbufsize);
+	ret = clGetProgramBuildInfo(prog, vocp->voc_ocldid, CL_PROGRAM_BUILD_LOG,
+				    0, NULL, &logbufsize);
 	if (ret != CL_SUCCESS) {
 		vg_ocl_error(NULL, ret, "clGetProgramBuildInfo");
 		return;
@@ -356,12 +345,8 @@ vg_ocl_buildlog(vg_ocl_context_t *vocp, cl_program prog)
 		return;
 	}
 
-	ret = clGetProgramBuildInfo(prog,
-				    vocp->voc_ocldid,
-				    CL_PROGRAM_BUILD_LOG,
-				    logbufsize,
-				    log,
-				    &logsize);
+	ret = clGetProgramBuildInfo(prog, vocp->voc_ocldid, CL_PROGRAM_BUILD_LOG,
+				    logbufsize, log, &logsize);
 	if (ret != CL_SUCCESS) {
 		vg_ocl_error(NULL, ret, "clGetProgramBuildInfo");
 
@@ -369,17 +354,13 @@ vg_ocl_buildlog(vg_ocl_context_t *vocp, cl_program prog)
 		/* Remove leading newlines and trailing newlines/whitespace */
 		log[logbufsize-1] = '\0';
 		for (off = logsize - 1; off >= 0; off--) {
-			if ((log[off] != '\r') &&
-			    (log[off] != '\n') &&
-			    (log[off] != ' ') &&
-			    (log[off] != '\t') &&
-			    (log[off] != '\0'))
+			if ((log[off] != '\r') && (log[off] != '\n') &&
+			    (log[off] != ' ') && (log[off] != '\t') && (log[off] != '\0'))
 				break;
 			log[off] = '\0';
 		}
 		for (off = 0; off < logbufsize; off++) {
-			if ((log[off] != '\r') &&
-			    (log[off] != '\n'))
+			if ((log[off] != '\r') && (log[off] != '\n'))
 				break;
 		}
 
@@ -403,10 +384,8 @@ enum {
 	VG_OCL_NO_BINARIES          = (1 << 7),
 
 	VG_OCL_OPTIMIZATIONS        = (VG_OCL_DEEP_PREPROC_UNROLL |
-				       VG_OCL_PRAGMA_UNROLL |
-				       VG_OCL_EXPENSIVE_BRANCHES |
-				       VG_OCL_DEEP_VLIW |
-				       VG_OCL_AMD_BFI_INT),
+				       VG_OCL_PRAGMA_UNROLL | VG_OCL_EXPENSIVE_BRANCHES |
+				       VG_OCL_DEEP_VLIW | VG_OCL_AMD_BFI_INT),
 
 };
 
@@ -442,14 +421,14 @@ vg_ocl_get_quirks(vg_ocl_context_t *vocp)
 		    CL_DEVICE_TYPE_GPU) {
 			quirks |= VG_OCL_EXPENSIVE_BRANCHES;
 			quirks |= VG_OCL_DEEP_VLIW;
-			dvn = vg_ocl_device_getstr(vocp->voc_ocldid,
-						   CL_DEVICE_EXTENSIONS);
+			dvn = vg_ocl_device_getstr(vocp->voc_ocldid, CL_DEVICE_EXTENSIONS);
 			if (dvn && strstr(dvn, "cl_amd_media_ops"))
 				quirks |= VG_OCL_AMD_BFI_INT;
 
 			dvn = vg_ocl_device_getstr(vocp->voc_ocldid,
 						   CL_DEVICE_NAME);
-			if (!strcmp(dvn, "Tahiti") || !strcmp(dvn, "Barts") || !strcmp(dvn, "Pitcairn"))
+			if (!strcmp(dvn, "Tahiti") || !strcmp(dvn, "Barts") ||
+                !strcmp(dvn, "Pitcairn"))
 				quirks &= ~VG_OCL_AMD_BFI_INT;
 			if (!strcmp(dvn, "ATI RV710")) {
 				quirks &= ~VG_OCL_OPTIMIZATIONS;
@@ -505,10 +484,8 @@ vg_ocl_hash_program(vg_ocl_context_t *vocp, const char *opts,
 	EVP_DigestUpdate(mdctx, str, strlen(str) + 1);
 	str = vg_ocl_device_getstr(vocp->voc_ocldid, CL_DEVICE_NAME);
 	EVP_DigestUpdate(mdctx, str, strlen(str) + 1);
-	if (opts)
-		EVP_DigestUpdate(mdctx, opts, strlen(opts) + 1);
-	if (size)
-		EVP_DigestUpdate(mdctx, program, size);
+	if (opts) EVP_DigestUpdate(mdctx, opts, strlen(opts) + 1);
+	if (size) EVP_DigestUpdate(mdctx, program, size);
 	EVP_DigestFinal_ex(mdctx, hash_out, NULL);
 	EVP_MD_CTX_destroy(mdctx);
 }
@@ -554,8 +531,7 @@ vg_ocl_amd_patch_inner(unsigned char *binary, size_t size)
 
 	ehp = (vg_elf32_header_t *) binary;
 	if ((size < sizeof(*ehp)) ||
-	    memcmp(ehp->e_ident, "\x7f" "ELF\1\1\1\x64", 8) ||
-	    !ehp->e_shoff)
+	    memcmp(ehp->e_ident, "\x7f" "ELF\1\1\1\x64", 8) || !ehp->e_shoff)
 		return 0;
 
 	off = ehp->e_shoff + (ehp->e_shstrndx * ehp->e_shentsize);
@@ -568,9 +544,7 @@ vg_ocl_amd_patch_inner(unsigned char *binary, size_t size)
 	txt2idx = 0;
 	for (i = 0; i < ehp->e_shnum; i++) {
 		off = nshp->sh_offset + shp[i].sh_name;
-		if (((off + 6) >= size) ||
-		    memcmp(binary + off, ".text", 6))
-			continue;
+		if (((off + 6) >= size) || memcmp(binary + off, ".text", 6)) continue;
 		n++;
 		if (n == 2)
 			txt2idx = i;
@@ -604,22 +578,17 @@ vg_ocl_amd_patch(vg_ocl_context_t *vocp, unsigned char *binary, size_t size)
 
 	ehp = (vg_elf32_header_t *) binary;
 	if ((size < sizeof(*ehp)) ||
-	    memcmp(ehp->e_ident, "\x7f" "ELF\1\1\1\0", 8) ||
-	    !ehp->e_shoff)
+	    memcmp(ehp->e_ident, "\x7f" "ELF\1\1\1\0", 8) || !ehp->e_shoff)
 		return 0;
 
 	offset = 1;
 	while (offset < (size - 8)) {
-		ptr = (unsigned char *) memchr(binary + offset,
-					       0x7f,
-					       size - offset);
-		if (!ptr)
-			return npatched;
+		ptr = (unsigned char *) memchr(binary + offset, 0x7f, size - offset);
+		if (!ptr) return npatched;
 		offset = ptr - binary;
 		ehp = (vg_elf32_header_t *) ptr;
 		if (((size - offset) < sizeof(*ehp)) ||
-		    memcmp(ehp->e_ident, "\x7f" "ELF\1\1\1\x64", 8) ||
-		    !ehp->e_shoff) {
+		    memcmp(ehp->e_ident, "\x7f" "ELF\1\1\1\x64", 8) || !ehp->e_shoff) {
 			offset += 1;
 			continue;
 		}
@@ -629,8 +598,7 @@ vg_ocl_amd_patch(vg_ocl_context_t *vocp, unsigned char *binary, size_t size)
 		npatched += nrun;
 		if (vcp->vc_verbose > 1)
 			fprintf(stderr, "AMD BFI_INT: patched %d instructions "
-			       "in kernel %d\n",
-			       nrun, ninner);
+			       "in kernel %d\n", nrun, ninner);
 		npatched++;
 		offset += 1;
 	}
@@ -652,8 +620,7 @@ vg_ocl_load_program(vg_context_t *vcp, vg_ocl_context_t *vocp,
 	char bin_name[64];
 
 	if (vcp->vc_verbose > 1)
-		fprintf(stderr,
-			"OpenCL compiler flags: %s\n", opts ? opts : "");
+		fprintf(stderr, "OpenCL compiler flags: %s\n", opts ? opts : "");
 
 	sz = 128 * 1024;
 	buf = (char *) malloc(sz);
@@ -710,8 +677,7 @@ vg_ocl_load_program(vg_context_t *vcp, vg_ocl_context_t *vocp,
 		while (!feof(kfp)) {
 			len = fread(buf + szr, 1, sz - szr, kfp);
 			if (!len) {
-				fprintf(stderr,
-					"Short read on CL kernel binary\n");
+				fprintf(stderr, "Short read on CL kernel binary\n");
 				fclose(kfp);
 				free(buf);
 				return 0;
@@ -720,9 +686,7 @@ vg_ocl_load_program(vg_context_t *vcp, vg_ocl_context_t *vocp,
 			if (szr == sz) {
 				tbuf = (char *) realloc(buf, sz*2);
 				if (!tbuf) {
-					fprintf(stderr,
-						"Could not expand CL kernel "
-						"binary buffer\n");
+					fprintf(stderr, "Could not expand CL kernel binary buffer\n");
 					fclose(kfp);
 					free(buf);
 					return 0;
@@ -733,12 +697,8 @@ vg_ocl_load_program(vg_context_t *vcp, vg_ocl_context_t *vocp,
 		}
 		fclose(kfp);
 	rebuild:
-		prog = clCreateProgramWithBinary(vocp->voc_oclctx,
-						 1, &vocp->voc_ocldid,
-						 &szr,
-						 (const unsigned char **) &buf,
-						 &sts,
-						 &ret);
+		prog = clCreateProgramWithBinary(vocp->voc_oclctx, 1, &vocp->voc_ocldid,
+						 &szr, (const unsigned char **) &buf, &sts, &ret);
 	}
 	free(buf);
 	if (!prog) {
@@ -748,8 +708,7 @@ vg_ocl_load_program(vg_context_t *vcp, vg_ocl_context_t *vocp,
 
 	if (vcp->vc_verbose > 0) {
 		if (fromsource && !patched) {
-			fprintf(stderr,
-				"Compiling kernel, can take minutes...");
+			fprintf(stderr, "Compiling kernel, can take minutes...");
 			fflush(stderr);
 		}
 	}
@@ -772,18 +731,14 @@ vg_ocl_load_program(vg_context_t *vcp, vg_ocl_context_t *vocp,
 	}
 
 	if (fromsource && !(vocp->voc_quirks & VG_OCL_NO_BINARIES)) {
-		ret = clGetProgramInfo(prog,
-				       CL_PROGRAM_BINARY_SIZES,
-				       sizeof(szr), &szr,
-				       &sz);
+		ret = clGetProgramInfo(prog, CL_PROGRAM_BINARY_SIZES,
+				       sizeof(szr), &szr, &sz);
 		if (ret != CL_SUCCESS) {
-			vg_ocl_error(vocp, ret,
-				     "WARNING: clGetProgramInfo(BINARY_SIZES)");
+			vg_ocl_error(vocp, ret, "WARNING: clGetProgramInfo(BINARY_SIZES)");
 			goto out;
 		}
 		if (sz == 0) {
-			fprintf(stderr,
-				"WARNING: zero-length CL kernel binary\n");
+			fprintf(stderr, "WARNING: zero-length CL kernel binary\n");
 			goto out;
 		}
 
@@ -791,29 +746,23 @@ vg_ocl_load_program(vg_context_t *vcp, vg_ocl_context_t *vocp,
 		if (!buf) {
 			fprintf(stderr,
 				"WARNING: Could not allocate %"PRSIZET"d bytes "
-				"for CL binary\n",
-			       szr);
+				"for CL binary\n", szr);
 			goto out;
 		}
 
-		ret = clGetProgramInfo(prog,
-				       CL_PROGRAM_BINARIES,
-				       sizeof(buf), &buf,
-				       &sz);
+		ret = clGetProgramInfo(prog, CL_PROGRAM_BINARIES,
+				       sizeof(buf), &buf, &sz);
 		if (ret != CL_SUCCESS) {
-			vg_ocl_error(vocp, ret,
-				     "WARNING: clGetProgramInfo(BINARIES)");
+			vg_ocl_error(vocp, ret, "WARNING: clGetProgramInfo(BINARIES)");
 			free(buf);
 			goto out;
 		}
 
 		if ((vocp->voc_quirks & VG_OCL_AMD_BFI_INT) && !patched) {
-			patched = vg_ocl_amd_patch(vocp,
-						   (unsigned char *) buf, szr);
+			patched = vg_ocl_amd_patch(vocp, (unsigned char *) buf, szr);
 			if (patched > 0) {
 				if (vcp->vc_verbose > 1)
-					fprintf(stderr,
-						"AMD BFI_INT patch complete\n");
+					fprintf(stderr, "AMD BFI_INT patch complete\n");
 				clReleaseProgram(prog);
 				goto rebuild;
 			}
@@ -828,18 +777,15 @@ vg_ocl_load_program(vg_context_t *vcp, vg_ocl_context_t *vocp,
 
 		kfp = fopen(bin_name, "wb");
 		if (!kfp) {
-			fprintf(stderr, "WARNING: "
-				"could not save CL kernel binary: %s\n",
+			fprintf(stderr, "WARNING: could not save CL kernel binary: %s\n",
 				strerror(errno));
 		} else {
 			sz = fwrite(buf, 1, szr, kfp);
 			fclose(kfp);
 			if (sz != szr) {
-				fprintf(stderr,
-					"WARNING: short write on CL kernel "
+				fprintf(stderr, "WARNING: short write on CL kernel "
 					"binary file: expected "
-					"%"PRSIZET"d, got %"PRSIZET"d\n",
-					szr, sz);
+					"%"PRSIZET"d, got %"PRSIZET"d\n", szr, sz);
 				unlink(bin_name);
 			}
 		}
@@ -885,8 +831,7 @@ vg_ocl_init(vg_context_t *vcp, vg_ocl_context_t *vocp, cl_device_id did,
 
 	vocp->voc_ocldid = did;
 
-	if (vcp->vc_verbose > 1)
-		vg_ocl_dump_info(vocp);
+	if (vcp->vc_verbose > 1) vg_ocl_dump_info(vocp);
 
 	vocp->voc_quirks = vg_ocl_get_quirks(vocp);
 
@@ -894,24 +839,19 @@ vg_ocl_init(vg_context_t *vcp, vg_ocl_context_t *vocp, cl_device_id did,
 		char yesbuf[16];
 		printf("Type 'yes' to continue: ");
 		fflush(stdout);
-		if (!fgets(yesbuf, sizeof(yesbuf), stdin) ||
-		    strncmp(yesbuf, "yes", 3))
+		if (!fgets(yesbuf, sizeof(yesbuf), stdin) || strncmp(yesbuf, "yes", 3))
 			exit(1);
 	}
 
-	vocp->voc_oclctx = clCreateContext(NULL,
-					   1, &did,
-					   vg_ocl_context_callback,
-					   NULL,
-					   &ret);
+	vocp->voc_oclctx = clCreateContext(NULL, 1, &did, vg_ocl_context_callback,
+					   NULL, &ret);
 	if (!vocp->voc_oclctx) {
 		vg_ocl_error(vocp, ret, "clCreateContext");
 		return 0;
 	}
 
 	vocp->voc_oclcmdq = clCreateCommandQueue(vocp->voc_oclctx,
-						 vocp->voc_ocldid,
-						 0, &ret);
+						 vocp->voc_ocldid, 0, &ret);
 	if (!vocp->voc_oclcmdq) {
 		vg_ocl_error(vocp, ret, "clCreateCommandQueue");
 		return 0;
@@ -944,8 +884,7 @@ vg_ocl_init(vg_context_t *vcp, vg_ocl_context_t *vocp, cl_device_id did,
 		end += snprintf(optbuf + end, sizeof(optbuf) - end,
 				"-cl-nv-verbose ");
 
-	if (!vg_ocl_load_program(vcp, vocp, "calc_addrs.cl", optbuf))
-		return 0;
+	if (!vg_ocl_load_program(vcp, vocp, "calc_addrs.cl", optbuf)) return 0;
 	return 1;
 }
 
@@ -994,8 +933,7 @@ vg_ocl_kernel_arg_alloc(vg_ocl_context_t *vocp, int slot,
 	int i, j, knum, karg;
 
 	for (i = 0; i < MAX_SLOT; i++) {
-		if ((i != slot) && (slot >= 0))
-			continue;
+		if ((i != slot) && (slot >= 0)) continue;
 		if (vocp->voc_args[i][arg]) {
 			clReleaseMemObject(vocp->voc_args[i][arg]);
 			vocp->voc_args[i][arg] = NULL;
@@ -1004,11 +942,8 @@ vg_ocl_kernel_arg_alloc(vg_ocl_context_t *vocp, int slot,
 	}
 
 	clbuf = clCreateBuffer(vocp->voc_oclctx,
-			       CL_MEM_READ_WRITE |
-			       (host ? CL_MEM_ALLOC_HOST_PTR : 0),
-			       size,
-			       NULL,
-			       &ret);
+			       CL_MEM_READ_WRITE | (host ? CL_MEM_ALLOC_HOST_PTR : 0),
+			       size, NULL, &ret);
 	if (!clbuf) {
 		fprintf(stderr, "clCreateBuffer(%d,%d): ", slot, arg);
 		vg_ocl_error(vocp, ret, NULL);
@@ -1016,8 +951,7 @@ vg_ocl_kernel_arg_alloc(vg_ocl_context_t *vocp, int slot,
 	}
 
 	for (i = 0; i < MAX_SLOT; i++) {
-		if ((i != slot) && (slot >= 0))
-			continue;
+		if ((i != slot) && (slot >= 0)) continue;
 
 		clRetainMemObject(clbuf);
 		vocp->voc_args[i][arg] = clbuf;
@@ -1027,13 +961,10 @@ vg_ocl_kernel_arg_alloc(vg_ocl_context_t *vocp, int slot,
 			knum = vg_ocl_arg_map[arg][j];
 			karg = vg_ocl_arg_map[arg][j+1];
 			ret = clSetKernelArg(vocp->voc_oclkernel[i][knum],
-					     karg,
-					     sizeof(clbuf),
-					     &clbuf);
+					     karg, sizeof(clbuf), &clbuf);
 
 			if (ret) {
-				fprintf(stderr,
-					"clSetKernelArg(%d,%d): ", knum, karg);
+				fprintf(stderr, "clSetKernelArg(%d,%d): ", knum, karg);
 				vg_ocl_error(vocp, ret, NULL);
 				return 0;
 			}
@@ -1055,13 +986,8 @@ vg_ocl_copyout_arg(vg_ocl_context_t *vocp, int wslot, int arg,
 	assert((slot >= 0) && (slot < MAX_SLOT));
 	assert(size <= vocp->voc_arg_size[slot][arg]);
 
-	ret = clEnqueueWriteBuffer(vocp->voc_oclcmdq,
-				   vocp->voc_args[slot][arg],
-				   CL_TRUE,
-				   0, size,
-				   buffer,
-				   0, NULL,
-				   NULL);
+	ret = clEnqueueWriteBuffer(vocp->voc_oclcmdq, vocp->voc_args[slot][arg],
+				   CL_TRUE, 0, size, buffer, 0, NULL, NULL);
 
 	if (ret) {
 		fprintf(stderr, "clEnqueueWriteBuffer(%d): ", arg);
@@ -1073,23 +999,18 @@ vg_ocl_copyout_arg(vg_ocl_context_t *vocp, int wslot, int arg,
 }
 
 static void *
-vg_ocl_map_arg_buffer(vg_ocl_context_t *vocp, int slot,
-		      int arg, int rw)
+vg_ocl_map_arg_buffer(vg_ocl_context_t *vocp, int slot, int arg, int rw)
 {
 	void *buf;
 	cl_int ret;
 
 	assert((slot >= 0) && (slot < MAX_SLOT));
 
-	buf = clEnqueueMapBuffer(vocp->voc_oclcmdq,
-				 vocp->voc_args[slot][arg],
+	buf = clEnqueueMapBuffer(vocp->voc_oclcmdq, vocp->voc_args[slot][arg],
 				 CL_TRUE,
 				 (rw == 2) ? (CL_MAP_READ|CL_MAP_WRITE)
 				           : (rw ? CL_MAP_WRITE : CL_MAP_READ),
-				 0, vocp->voc_arg_size[slot][arg],
-				 0, NULL,
-				 NULL,
-				 &ret);
+				 0, vocp->voc_arg_size[slot][arg], 0, NULL, NULL, &ret);
 	if (!buf) {
 		fprintf(stderr, "clEnqueueMapBuffer(%d): ", arg);
 		vg_ocl_error(vocp, ret, NULL);
@@ -1099,19 +1020,15 @@ vg_ocl_map_arg_buffer(vg_ocl_context_t *vocp, int slot,
 }
 
 static void
-vg_ocl_unmap_arg_buffer(vg_ocl_context_t *vocp, int slot,
-			int arg, void *buf)
+vg_ocl_unmap_arg_buffer(vg_ocl_context_t *vocp, int slot, int arg, void *buf)
 {
 	cl_int ret;
 	cl_event ev;
 
 	assert((slot >= 0) && (slot < MAX_SLOT));
 
-	ret = clEnqueueUnmapMemObject(vocp->voc_oclcmdq,
-				      vocp->voc_args[slot][arg],
-				      buf,
-				      0, NULL,
-				      &ev);
+	ret = clEnqueueUnmapMemObject(vocp->voc_oclcmdq, vocp->voc_args[slot][arg],
+				      buf, 0, NULL, &ev);
 	if (ret != CL_SUCCESS) {
 		fprintf(stderr, "clEnqueueUnmapMemObject(%d): ", arg);
 		vg_ocl_error(vocp, ret, NULL);
@@ -1127,19 +1044,14 @@ vg_ocl_unmap_arg_buffer(vg_ocl_context_t *vocp, int slot,
 }
 
 int
-vg_ocl_kernel_int_arg(vg_ocl_context_t *vocp, int slot,
-		      int arg, int value)
+vg_ocl_kernel_int_arg(vg_ocl_context_t *vocp, int slot, int arg, int value)
 {
 	cl_int ret;
 	int i;
 
 	for (i = 0; i < MAX_SLOT; i++) {
-		if ((i != slot) && (slot >= 0))
-			continue;
-		ret = clSetKernelArg(vocp->voc_oclkernel[i][2],
-				     arg,
-				     sizeof(value),
-				     &value);
+		if ((i != slot) && (slot >= 0)) continue;
+		ret = clSetKernelArg(vocp->voc_oclkernel[i][2], arg, sizeof(value), &value);
 		if (ret) {
 			fprintf(stderr, "clSetKernelArg(%d): ", arg);
 			vg_ocl_error(vocp, ret, NULL);
@@ -1157,18 +1069,13 @@ vg_ocl_kernel_buffer_arg(vg_ocl_context_t *vocp, int slot,
 	int i, j, knum, karg;
 
 	for (i = 0; i < MAX_SLOT; i++) {
-		if ((i != slot) && (slot >= 0))
-			continue;
+		if ((i != slot) && (slot >= 0)) continue;
 		for (j = 0; vg_ocl_arg_map[arg][j] >= 0; j += 2) {
 			knum = vg_ocl_arg_map[arg][j];
 			karg = vg_ocl_arg_map[arg][j+1];
-			ret = clSetKernelArg(vocp->voc_oclkernel[i][knum],
-					     karg,
-					     size,
-					     value);
+			ret = clSetKernelArg(vocp->voc_oclkernel[i][knum], karg, size, value);
 			if (ret) {
-				fprintf(stderr,
-					"clSetKernelArg(%d,%d): ", knum, karg);
+				fprintf(stderr, "clSetKernelArg(%d,%d): ", knum, karg);
 				vg_ocl_error(vocp, ret, NULL);
 				return 0;
 			}
@@ -1213,20 +1120,13 @@ vg_ocl_kernel_start(vg_ocl_context_t *vocp, int slot, int ncol, int nrow,
 	assert(is_pow2(invsize) && (invsize > 1));
 
 	val = invsize;
-	ret = clSetKernelArg(vocp->voc_oclkernel[slot][1],
-			     1,
-			     sizeof(val),
-			     &val);
+	ret = clSetKernelArg(vocp->voc_oclkernel[slot][1], 1, sizeof(val), &val);
 	if (ret != CL_SUCCESS) {
 		vg_ocl_error(vocp, ret, "clSetKernelArg(ncol)");
 		return 0;
 	}
-	ret = clEnqueueNDRangeKernel(vocp->voc_oclcmdq,
-				     vocp->voc_oclkernel[slot][0],
-				     2,
-				     NULL, globalws, NULL,
-				     0, NULL,
-				     &ev);
+	ret = clEnqueueNDRangeKernel(vocp->voc_oclcmdq, vocp->voc_oclkernel[slot][0],
+				     2, NULL, globalws, NULL, 0, NULL, &ev);
 	if (ret != CL_SUCCESS) {
 		vg_ocl_error(vocp, ret, "clEnqueueNDRange(0)");
 		return 0;
@@ -1245,12 +1145,8 @@ vg_ocl_kernel_start(vg_ocl_context_t *vocp, int slot, int ncol, int nrow,
 		return 0;
 	}
 
-	ret = clEnqueueNDRangeKernel(vocp->voc_oclcmdq,
-				     vocp->voc_oclkernel[slot][1],
-				     1,
-				     NULL, &invws, NULL,
-				     0, NULL,
-				     &ev);
+	ret = clEnqueueNDRangeKernel(vocp->voc_oclcmdq, vocp->voc_oclkernel[slot][1],
+				     1, NULL, &invws, NULL, 0, NULL, &ev);
 	if (ret != CL_SUCCESS) {
 		vg_ocl_error(vocp, ret, "clEnqueueNDRange(1)");
 		return 0;
@@ -1263,18 +1159,13 @@ vg_ocl_kernel_start(vg_ocl_context_t *vocp, int slot, int ncol, int nrow,
 		return 0;
 	}
 
-	if (vocp->voc_verify_func[1] &&
-	    !(vocp->voc_verify_func[1])(vocp, slot)) {
+	if (vocp->voc_verify_func[1] && !(vocp->voc_verify_func[1])(vocp, slot)) {
 		fprintf(stderr, "ERROR: Kernel 1 failed verification test\n");
 		return 0;
 	}
 
-	ret = clEnqueueNDRangeKernel(vocp->voc_oclcmdq,
-				     vocp->voc_oclkernel[slot][2],
-				     2,
-				     NULL, globalws, NULL,
-				     0, NULL,
-				     &ev);
+	ret = clEnqueueNDRangeKernel(vocp->voc_oclcmdq, vocp->voc_oclkernel[slot][2],
+				     2, NULL, globalws, NULL, 0, NULL, &ev);
 	if (ret != CL_SUCCESS) {
 		vg_ocl_error(vocp, ret, "clEnqueueNDRange(2)");
 		return 0;
@@ -1336,9 +1227,7 @@ vg_ocl_get_bignum_tpa(BIGNUM *bn, const unsigned char *buf, int cell)
 	start = (((cell / ACCESS_STRIDE) * ACCESS_BUNDLE) +
 		 (cell % ACCESS_STRIDE));
 	for (i = 0; i < 8; i++)
-		memcpy(bnbuf+(i*4),
-		       buf + 4*(start + i*ACCESS_STRIDE),
-		       4);
+		memcpy(bnbuf+(i*4), buf + 4*(start + i*ACCESS_STRIDE), 4);
 
 	vg_ocl_get_bignum_raw(bn, bnbuf);
 }
@@ -1388,13 +1277,10 @@ vg_ocl_put_point_tpa(unsigned char *buf, int cell, const EC_POINT *ppnt)
 	start = ((((2 * cell) / ACCESS_STRIDE) * ACCESS_BUNDLE) +
 		 (cell % (ACCESS_STRIDE/2)));
 	for (i = 0; i < 8; i++)
-		memcpy(buf + 4*(start + i*ACCESS_STRIDE),
-		       pntbuf+(i*4),
-		       4);
+		memcpy(buf + 4*(start + i*ACCESS_STRIDE), pntbuf+(i*4), 4);
 	for (i = 0; i < 8; i++)
 		memcpy(buf + 4*(start + (ACCESS_STRIDE/2) + (i*ACCESS_STRIDE)),
-		       pntbuf+32+(i*4),
-		       4);
+		       pntbuf+32+(i*4), 4);
 }
 
 static void
@@ -1406,13 +1292,10 @@ vg_ocl_get_point_tpa(EC_POINT *ppnt, const unsigned char *buf, int cell)
 	start = ((((2 * cell) / ACCESS_STRIDE) * ACCESS_BUNDLE) +
 		 (cell % (ACCESS_STRIDE/2)));
 	for (i = 0; i < 8; i++)
-		memcpy(pntbuf+(i*4),
-		       buf + 4*(start + i*ACCESS_STRIDE),
-		       4);
+		memcpy(pntbuf+(i*4), buf + 4*(start + i*ACCESS_STRIDE), 4);
 	for (i = 0; i < 8; i++)
 		memcpy(pntbuf+32+(i*4),
-		       buf + 4*(start + (ACCESS_STRIDE/2) + (i*ACCESS_STRIDE)),
-		       4);
+		       buf + 4*(start + (ACCESS_STRIDE/2) + (i*ACCESS_STRIDE)), 4);
 
 	vg_ocl_get_point(ppnt, pntbuf);
 }
@@ -1421,10 +1304,9 @@ void
 show_elapsed(struct timeval *tv, const char *place)
 {
 	struct timeval now, delta;
-        gettimeofday(&now, NULL);
+    gettimeofday(&now, NULL);
 	timersub(&now, tv, &delta);
-	fprintf(stderr,
-		"%s spent %ld.%06lds\n", place, delta.tv_sec, delta.tv_usec);
+	fprintf(stderr, "%s spent %ld.%06lds\n", place, delta.tv_sec, delta.tv_usec);
 }
 
 
@@ -1448,26 +1330,21 @@ vg_ocl_gethash_check(vg_ocl_context_t *vocp, int slot)
 	unsigned char *ocl_hashes_out;
 	int i, res = 0, round;
 
-	ocl_hashes_out = (unsigned char *)
-		vg_ocl_map_arg_buffer(vocp, slot, 0, 0);
+	ocl_hashes_out = (unsigned char *)vg_ocl_map_arg_buffer(vocp, slot, 0, 0);
 
 	if (!ocl_hashes_out) {
 		fprintf(stderr,
-			"ERROR: Could not map hash result buffer "
-			"for slot %d\n", slot);
+			"ERROR: Could not map hash result buffer for slot %d\n", slot);
 		return 2;
 	}
 
 	round = vocp->voc_ocl_cols * vocp->voc_ocl_rows;
 
 	for (i = 0; i < round; i++, vxcp->vxc_delta++) {
-		memcpy(&vxcp->vxc_binres[0],
-		       ocl_hashes_out + (36*i),
-		       33);
+		memcpy(&vxcp->vxc_binres[0], ocl_hashes_out + (36*i), 33);
 
 		res = test_func(vxcp);
-		if (res)
-			break;
+		if (res) break;
 	}
 
 	vg_ocl_unmap_arg_buffer(vocp, slot, 0, ocl_hashes_out);
@@ -1479,15 +1356,12 @@ vg_ocl_gethash_init(vg_ocl_context_t *vocp)
 {
 	int i;
 
-	if (!vg_ocl_create_kernel(vocp, 2, "hash_ec_point_get"))
-		return 0;
+	if (!vg_ocl_create_kernel(vocp, 2, "hash_ec_point_get")) return 0;
 
 	for (i = 0; i < vocp->voc_nslots; i++) {
 		/* Each slot gets its own hash output buffer */
 		if (!vg_ocl_kernel_arg_alloc(vocp, i, 0,
-					     36 *
-					     vocp->voc_ocl_rows *
-					     vocp->voc_ocl_cols, 1))
+					     36 * vocp->voc_ocl_rows * vocp->voc_ocl_cols, 1))
 			return 0;
 	}
 
@@ -1507,12 +1381,10 @@ vg_ocl_prefix_rekey(vg_ocl_context_t *vocp)
 
 	/* Set the found indicator for each slot to -1 */
 	for (i = 0; i < vocp->voc_nslots; i++) {
-		ocl_found_out = (uint32_t *)
-			vg_ocl_map_arg_buffer(vocp, i, 0, 1);
+		ocl_found_out = (uint32_t *)vg_ocl_map_arg_buffer(vocp, i, 0, 1);
 		if (!ocl_found_out) {
 			fprintf(stderr,
-				"ERROR: Could not map result buffer"
-				" for slot %d (rekey)\n", i);
+				"ERROR: Could not map result buffer for slot %d (rekey)\n", i);
 			return -1;
 		}
 		ocl_found_out[0] = 0xffffffff;
@@ -1522,22 +1394,18 @@ vg_ocl_prefix_rekey(vg_ocl_context_t *vocp)
 	if (vocp->voc_pattern_rewrite) {
 		/* Count number of range records */
 		i = vg_context_addr_sort(vcp, NULL);
-		if (!i)
-			return 0;
+		if (!i) return 0;
 
 		if (i > vocp->voc_pattern_alloc) {
 			/* (re)allocate target buffer */
-			if (!vg_ocl_kernel_arg_alloc(vocp, -1, 5, 72 * i, 0))
-				return -1;
+			if (!vg_ocl_kernel_arg_alloc(vocp, -1, 5, 72 * i, 0)) return -1;
 			vocp->voc_pattern_alloc = i;
 		}
 
 		/* Write range records */
-		ocl_targets_in = (unsigned char *)
-			vg_ocl_map_arg_buffer(vocp, 0, 5, 1);
+		ocl_targets_in = (unsigned char *) vg_ocl_map_arg_buffer(vocp, 0, 5, 1);
 		if (!ocl_targets_in) {
-			fprintf(stderr,
-				"ERROR: Could not map hash target buffer\n");
+			fprintf(stderr, "ERROR: Could not map hash target buffer\n");
 			return -1;
 		}
 		vg_context_addr_sort(vcp, ocl_targets_in);
@@ -1561,11 +1429,10 @@ vg_ocl_prefix_check(vg_ocl_context_t *vocp, int slot)
 	int res = 0;
 
 	/* Retrieve the found indicator */
-	ocl_found_out = (uint32_t *) vg_ocl_map_arg_buffer(vocp, slot, 0, 2);
+	ocl_found_out = (uint32_t *)vg_ocl_map_arg_buffer(vocp, slot, 0, 2);
 	if (!ocl_found_out) {
 		fprintf(stderr,
-			"ERROR: Could not map result buffer"
-			" for slot %d\n", slot);
+			"ERROR: Could not map result buffer for slot %d\n", slot);
 		return 2;
 	}
 	found_delta = ocl_found_out[0];
@@ -1592,8 +1459,7 @@ vg_ocl_prefix_check(vg_ocl_context_t *vocp, int slot)
 			fdumphex(stderr, vxcp->vxc_binres, 33);
 			fprintf(stderr, "GPU hash: ");
 			fdumphex(stderr, (unsigned char *) (ocl_found_out + 2), 33);
-			fprintf(stderr, "Found delta: %d "
-			       "Start delta: %d\n",
+			fprintf(stderr, "Found delta: %d Start delta: %d\n",
 			       found_delta, orig_delta);
 			res = 1;
 		}
@@ -1610,12 +1476,10 @@ vg_ocl_prefix_init(vg_ocl_context_t *vocp)
 {
 	int i;
 
-	if (!vg_ocl_create_kernel(vocp, 2, "hash_ec_point_search_prefix"))
-		return 0;
+	if (!vg_ocl_create_kernel(vocp, 2, "hash_ec_point_search_prefix")) return 0;
 
 	for (i = 0; i < vocp->voc_nslots; i++) {
-		if (!vg_ocl_kernel_arg_alloc(vocp, i, 0, 44, 1))
-			return 0;
+		if (!vg_ocl_kernel_arg_alloc(vocp, i, 0, 44, 1)) return 0;
 	}
 	vocp->voc_rekey_func = vg_ocl_prefix_rekey;
 	vocp->voc_check_func = vg_ocl_prefix_check;
@@ -1633,14 +1497,12 @@ vg_ocl_config_pattern(vg_ocl_context_t *vocp)
 
 	i = vg_context_addr_sort(vcp, NULL);
 	if (i > 0) {
-		if (vcp->vc_verbose > 1)
-			fprintf(stderr, "Using OpenCL prefix matcher\n");
+		if (vcp->vc_verbose > 1) fprintf(stderr, "Using OpenCL prefix matcher\n");
 		/* Configure for prefix matching */
 		return vg_ocl_prefix_init(vocp);
 	}
 
-	if (vcp->vc_verbose > 0)
-		fprintf(stderr, "WARNING: Using CPU pattern matcher\n");
+	if (vcp->vc_verbose > 0) fprintf(stderr, "WARNING: Using CPU pattern matcher\n");
 	return vg_ocl_gethash_init(vocp);
 }
 
@@ -1733,8 +1595,7 @@ vg_ocl_verify_temporary(vg_ocl_context_t *vocp, int slot, int z_inverted)
 			    BN_cmp(bnz, bnzc)) {
 				if (!mismatches) {
 					fprintf(stderr, "Base privkey: ");
-					fdumpbn(stderr, EC_KEY_get0_private_key(
-						       vxcp->vxc_key));
+					fdumpbn(stderr, EC_KEY_get0_private_key(vxcp->vxc_key));
 				}
 				mismatches++;
 				fprintf(stderr, "Mismatch for kernel %d, "
@@ -1977,7 +1838,7 @@ vg_opencl_loop(vg_exec_context_t *arg)
 		 * Each work group gets its own:
 		 * - Column point array
 		 */
-		if (!vg_ocl_kernel_arg_alloc(vocp, i, 4, 32 * 2 * nrows, 1)) goto enomem;
+		if (!vg_ocl_kernel_arg_alloc(vocp, i, 4, 64 * 2 * nrows, 1)) goto enomem;
 	}
 
 	/*
@@ -2021,7 +1882,6 @@ l_rekey:
 	/* Generate a new random private key */
 	EC_KEY_generate_key(pkey);
 	npoints = 0;
-#ifdef  ommit
 	if (vcp->vc_privkey_prefix_length > 0) {
 		BIGNUM *pkbn = BN_dup(EC_KEY_get0_private_key(pkey));
 		memcpy((char *)pkbn->d + 32 - vcp->vc_privkey_prefix_length, vcp->vc_privkey_prefix, vcp->vc_privkey_prefix_length);
@@ -2031,14 +1891,12 @@ l_rekey:
 		EC_POINT_mul(pgroup, origin, pkbn, NULL, NULL, vxcp->vxc_bnctx);
 		EC_KEY_set_public_key(pkey, origin);
 	}
-#endif
 
 	/* Determine rekey interval */
 	EC_GROUP_get_order(pgroup, vxcp->vxc_bntmp, vxcp->vxc_bnctx);
 	BN_sub(vxcp->vxc_bntmp2, vxcp->vxc_bntmp, EC_KEY_get0_private_key(pkey));
 	rekey_at = BN_get_word(vxcp->vxc_bntmp2);
-	if ((rekey_at == BN_MASK2) || (rekey_at > rekey_max))
-		rekey_at = rekey_max;
+	if ((rekey_at == BN_MASK2) || (rekey_at > rekey_max)) rekey_at = rekey_max;
 	assert(rekey_at > 0);
 
 	EC_POINT_copy(ppbase[0], EC_KEY_get0_public_key(pkey));
@@ -2125,11 +1983,11 @@ l_rekey:
 			if (npoints > 1) {
 				/* Move the row increments forward */
 				for (i = 0; i < nrows; i++) {
-					EC_POINT_add(pgroup, pprow[i], pprow[i], poffset, vxcp->vxc_bnctx);
+					EC_POINT_add(pgroup, pprow[i], pprow[i], poffset,
+                                vxcp->vxc_bnctx);
 				}
 
-				EC_POINTs_make_affine(pgroup, nrows, pprow,
-						      vxcp->vxc_bnctx);
+				EC_POINTs_make_affine(pgroup, nrows, pprow, vxcp->vxc_bnctx);
 			}
 
 			/* Copy the row stride array to the device */
@@ -2176,8 +2034,7 @@ l_rekey:
 				slot_done = 1;
 			}
 
-			if (!rekey_at ||
-			    (!slot_done && ((npoints + round) >= rekey_at)))
+			if (!rekey_at || (!slot_done && ((npoints + round) >= rekey_at)))
 				goto l_rekey;
 		}
 	}
@@ -2199,26 +2056,22 @@ l_rekey:
 		pthread_cond_signal(&vocp->voc_wait);
 		while (vocp->voc_ocl_slot != -1) {
 			assert(slot_busy);
-			pthread_cond_wait(&vocp->voc_wait,
-					  &vocp->voc_lock);
+			pthread_cond_wait(&vocp->voc_wait, &vocp->voc_lock);
 		}
 		slot_busy = 0;
 		pthread_mutex_unlock(&vocp->voc_lock);
 		pthread_join(vocp->voc_ocl_thread, NULL);
-		if (vcp->vc_verbose > 1)
-			printf("done!\n");
+		if (vcp->vc_verbose > 1) printf("done!\n");
 	}
 
 	vg_exec_context_yield(vxcp);
 
 	if (ppbase) {
 		for (i = 0; i < (nrows + ncols); i++)
-			if (ppbase[i])
-				EC_POINT_free(ppbase[i]);
+			if (ppbase[i]) EC_POINT_free(ppbase[i]);
 		free(ppbase);
 	}
-	if (pbatchinc)
-		EC_POINT_free(pbatchinc);
+	if (pbatchinc) EC_POINT_free(pbatchinc);
 
 	/* Release the argument buffers */
 	vg_ocl_free_args(vocp);
@@ -2276,12 +2129,10 @@ show_devices(cl_platform_id pid, cl_device_id *ids, int nd, int base)
 	cl_int res;
 
 	for (i = 0; i < nd; i++) {
-		res = clGetDeviceInfo(ids[i], CL_DEVICE_NAME,
-				      sizeof(nbuf), nbuf, &len);
+		res = clGetDeviceInfo(ids[i], CL_DEVICE_NAME, sizeof(nbuf), nbuf, &len);
 		if (res != CL_SUCCESS)
 			continue;
-		if (len >= sizeof(nbuf))
-			len = sizeof(nbuf) - 1;
+		if (len >= sizeof(nbuf)) len = sizeof(nbuf) - 1;
 		nbuf[len] = '\0';
 		res = clGetDeviceInfo(ids[i], CL_DEVICE_VENDOR, sizeof(vbuf), vbuf, &len);
 		if (res != CL_SUCCESS) continue;
@@ -2331,8 +2182,7 @@ get_platform_list(cl_platform_id **list_out)
 	if (np) {
 		ids = (cl_platform_id *) malloc(np * sizeof(*ids));
 		if (ids == NULL) {
-			fprintf(stderr,
-				"Could not allocate platform ID list\n");
+			fprintf(stderr, "Could not allocate platform ID list\n");
 			*list_out = NULL;
 			return -1;
 		}
@@ -2358,16 +2208,14 @@ show_platforms(cl_platform_id *ids, int np, int base)
 	cl_int res;
 
 	for (i = 0; i < np; i++) {
-		res = clGetPlatformInfo(ids[i], CL_PLATFORM_NAME,
-					sizeof(nbuf), nbuf, &len);
+		res = clGetPlatformInfo(ids[i], CL_PLATFORM_NAME, sizeof(nbuf), nbuf, &len);
 		if (res != CL_SUCCESS) {
 			vg_ocl_error(NULL, res, "clGetPlatformInfo(NAME)");
 			continue;
 		}
 		if (len >= sizeof(nbuf)) len = sizeof(nbuf) - 1;
 		nbuf[len] = '\0';
-		res = clGetPlatformInfo(ids[i], CL_PLATFORM_VENDOR,
-					sizeof(vbuf), vbuf, &len);
+		res = clGetPlatformInfo(ids[i], CL_PLATFORM_VENDOR, sizeof(vbuf), vbuf, &len);
 		if (res != CL_SUCCESS) {
 			vg_ocl_error(NULL, res, "clGetPlatformInfo(VENDOR)");
 			continue;
@@ -2385,8 +2233,7 @@ get_platform(int num)
 	cl_platform_id id, *ids;
 
 	np = get_platform_list(&ids);
-	if (np < 0)
-		return NULL;
+	if (np < 0) return NULL;
 	if (!np) {
 		fprintf(stderr, "No OpenCL platforms available\n");
 		return NULL;
@@ -2578,17 +2425,14 @@ vg_ocl_context_new(vg_context_t *vcp,
 	if ((round % invsize) || !is_pow2(invsize) || (invsize < 2)) {
 		if (vcp->vc_verbose <= 1) {
 			fprintf(stderr, "Grid size: %dx%d\n", ncols, nrows);
-			fprintf(stderr,
-				"Modular inverse: %d threads, %d ops each\n",
+			fprintf(stderr, "Modular inverse: %d threads, %d ops each\n",
 				round/invsize, invsize);
 		}
 		if (round % invsize)
 			fprintf(stderr,
-				"Modular inverse work size must "
-				"evenly divide points\n");
+				"Modular inverse work size must evenly divide points\n");
 		else
-			fprintf(stderr,
-				"Modular inverse work per task (%d) "
+			fprintf(stderr, "Modular inverse work per task (%d) "
 				"must be a power of 2\n", invsize);
 		goto out_fail;
 	}
@@ -2657,14 +2501,11 @@ vg_ocl_context_new_from_devstr(vg_context_t *vcp, const char *devstr,
 		else if (!strcmp(part, "invsize")) {
 			invsize = atoi(param);
 			if (!invsize) {
-				fprintf(stderr,
-					"Invalid modular inverse size '%s'\n",
-					param);
+				fprintf(stderr, "Invalid modular inverse size '%s'\n", param);
 				continue;
 			}
 			if (invsize & (invsize - 1)) {
-				fprintf(stderr,
-					"Modular inverse size %d must be "
+				fprintf(stderr, "Modular inverse size %d must be "
 					"a power of 2\n", invsize);
 				invsize = 0;
 				continue;
@@ -2674,8 +2515,7 @@ vg_ocl_context_new_from_devstr(vg_context_t *vcp, const char *devstr,
 		else if (!strcmp(part, "threads")) {
 			nthreads = atoi(param);
 			if (nthreads == 0) {
-				fprintf(stderr,
-					"Invalid thread count '%s'\n", param);
+				fprintf(stderr, "Invalid thread count '%s'\n", param);
 				continue;
 			}
 		}
