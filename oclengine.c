@@ -1527,21 +1527,21 @@ vg_ocl_prefix_rekey(vg_ocl_context_t *vocp)
 
 		if (i > vocp->voc_pattern_alloc) {
 			/* (re)allocate target buffer */
-			if (!vg_ocl_kernel_arg_alloc(vocp, -1, 9, 72 * i, 0))
+			if (!vg_ocl_kernel_arg_alloc(vocp, -1, 5, 72 * i, 0))
 				return -1;
 			vocp->voc_pattern_alloc = i;
 		}
 
 		/* Write range records */
 		ocl_targets_in = (unsigned char *)
-			vg_ocl_map_arg_buffer(vocp, 0, 9, 1);
+			vg_ocl_map_arg_buffer(vocp, 0, 5, 1);
 		if (!ocl_targets_in) {
 			fprintf(stderr,
 				"ERROR: Could not map hash target buffer\n");
 			return -1;
 		}
 		vg_context_addr_sort(vcp, ocl_targets_in);
-		vg_ocl_unmap_arg_buffer(vocp, 0, 9, ocl_targets_in);
+		vg_ocl_unmap_arg_buffer(vocp, 0, 5, ocl_targets_in);
 		vg_ocl_kernel_int_arg(vocp, -1, 4, i);
 
 		vocp->voc_pattern_rewrite = 0;
@@ -1561,8 +1561,7 @@ vg_ocl_prefix_check(vg_ocl_context_t *vocp, int slot)
 	int res = 0;
 
 	/* Retrieve the found indicator */
-	ocl_found_out = (uint32_t *)
-		vg_ocl_map_arg_buffer(vocp, slot, 0, 2);
+	ocl_found_out = (uint32_t *) vg_ocl_map_arg_buffer(vocp, slot, 0, 2);
 	if (!ocl_found_out) {
 		fprintf(stderr,
 			"ERROR: Could not map result buffer"
@@ -1579,9 +1578,7 @@ vg_ocl_prefix_check(vg_ocl_context_t *vocp, int slot)
 
 		/* Make sure the GPU produced the expected hash */
 		res = 0;
-		if (!memcmp(vxcp->vxc_binres,
-			    ocl_found_out + 2,
-			    33)) {
+		if (!memcmp(vxcp->vxc_binres, ocl_found_out + 2, 33)) {
 			res = test_func(vxcp);
 		}
 		if (res == 0) {
@@ -2136,12 +2133,9 @@ l_rekey:
 			}
 
 			/* Copy the row stride array to the device */
-			ocl_strides_in = (unsigned char *)
-				vg_ocl_map_arg_buffer(vocp, slot, 4, 1);
+			ocl_strides_in = (unsigned char *)vg_ocl_map_arg_buffer(vocp, slot, 4, 1);
 			if (!ocl_strides_in) {
-				fprintf(stderr,
-					"ERROR: Could not map row buffer "
-					"for slot %d\n", slot);
+				fprintf(stderr, "ERROR: Could not map row buffer for slot %d\n", slot);
 				goto enomem;
 			}
 			memset(ocl_strides_in, 0, 64*nrows);
@@ -2174,10 +2168,8 @@ l_rekey:
 			if (slot_busy) {
 				pthread_mutex_lock(&vocp->voc_lock);
 				while (vocp->voc_ocl_slot != -1) {
-					assert(vocp->voc_ocl_slot ==
-					       ((slot + nslots - 1) % nslots));
-					pthread_cond_wait(&vocp->voc_wait,
-							  &vocp->voc_lock);
+					assert(vocp->voc_ocl_slot == ((slot + nslots - 1) % nslots));
+					pthread_cond_wait(&vocp->voc_wait, &vocp->voc_lock);
 				}
 				pthread_mutex_unlock(&vocp->voc_lock);
 				slot_busy = 0;
