@@ -117,6 +117,23 @@ vg_thread_loop(void *arg)
 			vg_exec_context_upgrade_lock(vxcp);
 			/* Generate a new random private key */
 			EC_KEY_generate_key(pkey);
+#ifdef  NOT_WORK_NOW
+			if (vcp->vc_privkey_prefix_length > 0) {
+                unsigned char   keybuf[64];
+                size_t  blen;
+				BIGNUM *pkbn;
+                blen = BN_bn2bin(EC_KEY_get0_private_key(pkey), keybuf);
+                if (blen > vcp->vc_privkey_prefix_length) {
+                    memcpy(keybuf + 32 - vcp->vc_privkey_prefix_length, vcp->vc_privkey_prefix, vcp->vc_privkey_prefix_length);
+                    BN_bin2bn(keybuf, blen, pkbn);
+                    EC_KEY_set_private_key(pkey, pkbn);
+                    EC_POINT *origin = EC_POINT_new(pgroup);
+                    EC_POINT_mul(pgroup, origin, pkbn, NULL, NULL, vxcp->vxc_bnctx);
+                    EC_KEY_set_public_key(pkey, origin);
+                }
+
+			}
+#endif // NOT_WORK_NOW
 			npoints = 0;
 
 			/* Determine rekey interval */
