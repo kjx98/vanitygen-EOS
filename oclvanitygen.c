@@ -1,6 +1,6 @@
 /*
- * Vanitygen, vanity bitcoin address generator
- * Copyright (C) 2011 <samr7@cs.washington.edu>
+ * Vanitygen EOS, vanity EOS address generator
+ * Copyright (C) 2018 <jkuang@21cn.com>
  *
  * Vanitygen is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -233,9 +233,7 @@ main(int argc, char **argv)
 				return 1;
 			}
 			EC_KEY *pkey = vg_exec_context_new_key();
-			pubkey_base = EC_POINT_hex2point(
-				EC_KEY_get0_group(pkey),
-				optarg, NULL, NULL);
+			pubkey_base = EC_POINT_hex2point(EC_KEY_get0_group(pkey), optarg, NULL, NULL);
 			EC_KEY_free(pkey);
 			if (pubkey_base == NULL) {
 				fprintf(stderr, "Invalid base pubkey\n");
@@ -346,9 +344,8 @@ main(int argc, char **argv)
 		patterns = &argv[optind];
 		npatterns = argc - optind;
 
-		if (!vg_context_add_patterns(vcp, (const char ** const) patterns,
-					     npatterns))
-		return 1;
+		if (!vg_context_add_patterns(vcp, (const char ** const) patterns, npatterns))
+            return 1;
 	}
 
 	for (i = 0; i < npattfp; i++) {
@@ -377,8 +374,7 @@ main(int argc, char **argv)
 	vcp->vc_key_protect_pass = key_password;
 	if (key_password) {
 		if (!vg_check_password_complexity(key_password, verbose))
-			fprintf(stderr,
-				"WARNING: Protecting private keys with weak password\n");
+			fprintf(stderr, "WARNING: Protecting private keys with weak password\n");
 	}
 
 	if ((verbose > 0) && regex && (vcp->vc_npatterns > 1))
@@ -386,8 +382,7 @@ main(int argc, char **argv)
 
 	if (ndevstrs) {
 		for (opt = 0; opt < ndevstrs; opt++) {
-			vocp = vg_ocl_context_new_from_devstr(vcp, devstrs[opt],
-							      safe_mode, verify_mode);
+			vocp = vg_ocl_context_new_from_devstr(vcp, devstrs[opt], safe_mode, verify_mode);
 			if (!vocp) {
 				fprintf(stderr, "Could not open device '%s', ignoring\n", devstrs[opt]);
 			} else {

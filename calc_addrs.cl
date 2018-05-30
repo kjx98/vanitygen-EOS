@@ -1,6 +1,6 @@
 /*
- * Vanitygen, vanity bitcoin address generator
- * Copyright (C) 2011 <samr7@cs.washington.edu>
+ * Vanitygen EOS, vanity EOS address generator
+ * Copyright (C) 2018 <jkuang@21cn.com>
  *
  * Vanitygen is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@
 
 /*
  * This file contains an OpenCL kernel for performing certain parts of
- * the bitcoin address calculation process.
+ * the EOS address calculation process.
  *
  * Kernel: ec_add_grid
  *
@@ -1396,7 +1396,7 @@ hash_ec_point_get(__global uint *hashes_out,
 
 	/* Output the hash in proper byte-order */
 #define hash_ec_point_get_inner_1(i)		\
-	hashes_out[i] = load_le32(hash[i]);
+	hashes_out[i] = load_be32(hash[i]);
 
 	hash288_unroll(hash_ec_point_get_inner_1);
 }
@@ -1448,6 +1448,7 @@ hash_ec_point_search_prefix(__global uint *found,
 	/* Complete the coordinates and hash */
 	hash_ec_point(hash, points_in, z_heap);
 
+#ifdef  OLD_BTC
 	/*
 	 * Unconditionally byteswap the hash result, because:
 	 * - The byte-level convention of RIPEMD160 is little-endian
@@ -1457,6 +1458,7 @@ hash_ec_point_search_prefix(__global uint *found,
 	hash[i] = bswap32(hash[i]);
 
 	hash288_unroll(hash_ec_point_search_prefix_inner_1);
+#endif
 
 	/* Binary-search the target table for the hash we just computed */
 	for (high = ntargets - 1, low = 0, i = high >> 1;

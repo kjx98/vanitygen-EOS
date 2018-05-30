@@ -1,11 +1,11 @@
 /*
- * Vanitygen, vanity bitcoin address generator
- * Copyright (C) 2011 <samr7@cs.washington.edu>
+ * Vanitygen EOS, vanity EOS address generator
+ * Copyright (C) 2018 <jkuang@21cn.com>
  *
  * Vanitygen is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
- * any later version. 
+ * any later version.
  *
  * Vanitygen is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,8 +39,6 @@ char ticker[10];
 
 char workurl[2048];
 int workurlFlag = 0;
-
-int GRSFlag = 0;
 
 const char *version = VANITYGEN_VERSION;
 const int debug = 0;
@@ -174,15 +172,12 @@ server_batch_free(pubkeybatch_t *pbatch)
 {
 	workitem_t *wip;
 	while ((wip = workitem_avl_first(&pbatch->items)) != NULL) {
-		if (wip->pubkey == pbatch->pubkey)
-			wip->pubkey = NULL;
+		if (wip->pubkey == pbatch->pubkey) wip->pubkey = NULL;
 		avl_remove(&pbatch->items, &wip->avlent);
 		server_workitem_free(wip);
 	}
-	if (pbatch->pubkey)
-		EC_POINT_free(pbatch->pubkey);
-	if (pbatch->pubkey_hex)
-		OPENSSL_free((char*)pbatch->pubkey_hex);
+	if (pbatch->pubkey) EC_POINT_free(pbatch->pubkey);
+	if (pbatch->pubkey_hex) OPENSSL_free((char*)pbatch->pubkey_hex);
 	free(pbatch);
 }
 
@@ -199,10 +194,8 @@ pubkeybatch_avl_search(avl_root_t *rootp, const EC_POINT *pubkey,
 	char *pubkey_hex;
 	pubkeybatch_t *vp;
 	avl_item_t *itemp = rootp->ar_root;
-	pubkey_hex = EC_POINT_point2hex(pgroup,
-					pubkey,
-					POINT_CONVERSION_UNCOMPRESSED,
-					NULL);
+	pubkey_hex = EC_POINT_point2hex(pgroup, pubkey,
+					POINT_CONVERSION_UNCOMPRESSED, NULL);
 	while (itemp) {
 		int cmpres;
 		vp = avl_item_entry(itemp, pubkeybatch_t, avlent);
@@ -254,8 +247,7 @@ pubkeybatch_avl_first(avl_root_t *rootp)
 {
 	avl_item_t *itemp;
 	itemp = avl_first(rootp);
-	if (itemp)
-		return avl_item_entry(itemp, pubkeybatch_t, avlent);
+	if (itemp) return avl_item_entry(itemp, pubkeybatch_t, avlent);
 	return NULL;
 }
 
@@ -264,8 +256,7 @@ pubkeybatch_avl_next(pubkeybatch_t *vp)
 {
 	avl_item_t *itemp = &vp->avlent;
 	itemp = avl_next(itemp);
-	if (itemp)
-		return avl_item_entry(itemp, pubkeybatch_t, avlent);
+	if (itemp) return avl_item_entry(itemp, pubkeybatch_t, avlent);
 	return NULL;
 }
 
@@ -297,25 +288,19 @@ server_workitem_new(server_request_t *reqp,
 	double difficulty;
 
 	addrtype = atoi(addrtype_s);
-	if ((addrtype < 0) || (addrtype > 255))
-		return NULL;
+	if ((addrtype < 0) || (addrtype > 255)) return NULL;
 
 	reward = strtod(reward_s, NULL);
-	if (reward < 0.0)
-		return NULL;
+	if (reward < 0.0) return NULL;
 
 	difficulty = vg_prefix_get_difficulty(addrtype, pfx);
-	if (difficulty == 0.0)
-		return NULL;
+	if (difficulty == 0.0) return NULL;
 
 	pubkey = EC_POINT_hex2point(reqp->group, pubkey_s, NULL, NULL);
-	if (pubkey == NULL)
-		return NULL;
+	if (pubkey == NULL) return NULL;
 
 
-	wip = (workitem_t *) malloc(sizeof(*wip) +
-				    strlen(pfx) +
-				    strlen(comment) + 2);
+	wip = (workitem_t *) malloc(sizeof(*wip) + strlen(pfx) + strlen(comment) + 2);
 	memset(wip, 0, sizeof(*wip));
 	avl_item_init(&wip->avlent);
 	wip->pattern = (char *) (wip + 1);
@@ -358,16 +343,14 @@ server_pubkeybatch_equal(server_context_t *ctxp,
 
 	if (a->nitems != b->nitems)
 		return 0;
-	if (EC_POINT_cmp(EC_KEY_get0_group(ctxp->dummy_key),
-			 a->pubkey, b->pubkey, NULL))
+	if (EC_POINT_cmp(EC_KEY_get0_group(ctxp->dummy_key), a->pubkey, b->pubkey, NULL))
 		return 0;
 
 	for (wipa = workitem_avl_first(&a->items),
 		     wipb = workitem_avl_first(&b->items);
 	     wipa && wipb;
 	     wipa = workitem_avl_next(wipa), wipb = workitem_avl_next(wipb)) {
-		if (!server_workitem_equal(wipa, wipb))
-			return 0;
+		if (!server_workitem_equal(wipa, wipb)) return 0;
 	}
 	return 1;
 }
@@ -375,12 +358,9 @@ server_pubkeybatch_equal(server_context_t *ctxp,
 void
 server_context_free(server_context_t *ctxp)
 {
-	if (ctxp->dummy_key)
-		EC_KEY_free(ctxp->dummy_key);
-	if (ctxp->getwork)
-		free(ctxp->getwork);
-	if (ctxp->submit)
-		free(ctxp->submit);
+	if (ctxp->dummy_key) EC_KEY_free(ctxp->dummy_key);
+	if (ctxp->getwork) free(ctxp->getwork);
+	if (ctxp->submit) free(ctxp->submit);
 	free(ctxp);
 }
 
@@ -390,8 +370,7 @@ server_context_new(const char *url, const char *credit_addr)
 	server_context_t *ctxp;
 	int urllen = strlen(url);
 	int addrlen = strlen(credit_addr);
-	ctxp = (server_context_t *)
-		malloc(sizeof(*ctxp) + urllen + addrlen + 2);
+	ctxp = (server_context_t *) malloc(sizeof(*ctxp) + urllen + addrlen + 2);
 	memset(ctxp, 0, sizeof(*ctxp));
 	avl_root_init(&ctxp->items);
 	ctxp->url = (const char *) (ctxp + 1);
@@ -438,30 +417,26 @@ server_workitem_add(server_request_t *reqp, workitem_t *wip)
 	pbatch = pubkeybatch_avl_search(&reqp->items, wip->pubkey, reqp->group);
 	if (pbatch == NULL) {
 		pbatch = (pubkeybatch_t *) malloc(sizeof(*pbatch));
-		if (pbatch == NULL)
-			return -1;
+		if (pbatch == NULL) return -1;
 		memset(pbatch, 0, sizeof(*pbatch));
 		avl_item_init(&pbatch->avlent);
 		avl_root_init(&pbatch->items);
 		pbatch->total_value = 0;
 		pbatch->pubkey = wip->pubkey;
-		pbatch->pubkey_hex = EC_POINT_point2hex(reqp->group, 
-					wip->pubkey, 
-					POINT_CONVERSION_UNCOMPRESSED, 
-					NULL);
+		pbatch->pubkey_hex = EC_POINT_point2hex(reqp->group, wip->pubkey,
+					POINT_CONVERSION_UNCOMPRESSED, NULL);
 		pubkeybatch_avl_insert(&reqp->items, pbatch);
 		reqp->nitems++;
 	}
 
 	/* Make sure there isn't an overlap */
 	xwip = workitem_avl_insert(&pbatch->items, wip);
-	if (xwip)
-		return -1;
+	if (xwip) return -1;
 
 	if (wip->pubkey && wip->pubkey != pbatch->pubkey)
 		EC_POINT_free(wip->pubkey);
 	wip->pubkey = pbatch->pubkey;
-	
+
 	pbatch->nitems++;
 	pbatch->total_value += wip->value;
 	return 0;
@@ -480,16 +455,14 @@ server_body_reader(const char *buf, size_t elemsize, size_t len, void *param)
 
 	if ((reqp->part_size < (reqp->part_end + len + 1)) &&
 	    (reqp->part_off > 0)) {
-		memmove(reqp->part_buf,
-			reqp->part_buf + reqp->part_off,
+		memmove(reqp->part_buf, reqp->part_buf + reqp->part_off,
 			reqp->part_end - reqp->part_off);
 		reqp->part_end -= reqp->part_off;
 		reqp->part_off = 0;
 	}
 
 	if (reqp->part_size < (reqp->part_end + len + 1)) {
-		if (reqp->part_size == 0)
-			reqp->part_size = 4096;
+		if (reqp->part_size == 0) reqp->part_size = 4096;
 		while (reqp->part_size < (reqp->part_end + len + 1)) {
 			reqp->part_size *= 2;
 			if (reqp->part_size > (1024*1024)) {
@@ -498,8 +471,7 @@ server_body_reader(const char *buf, size_t elemsize, size_t len, void *param)
 				return 0;
 			}
 		}
-		reqp->part_buf = (char *) realloc(reqp->part_buf,
-						  reqp->part_size);
+		reqp->part_buf = (char *) realloc(reqp->part_buf, reqp->part_size);
 		if (!reqp->part_buf) {
 			fprintf(stderr, "Out of memory");
 			return 0;
@@ -513,36 +485,29 @@ server_body_reader(const char *buf, size_t elemsize, size_t len, void *param)
 	line = reqp->part_buf + reqp->part_off;
 	while (1) {
 		sep = strchr(line, '\n');
-		if (!sep)
-			break;
+		if (!sep) break;
 		pfx = line;
 		*sep = '\0';
 		line = sep + 1;
 		sep = strchr(pfx, ':');
-		if (!sep)
-			goto bad_line;
-	        *sep = '\0'; sep += 1;
+		if (!sep) goto bad_line;
+        *sep = '\0'; sep += 1;
 		pubkey_s = sep;
 		sep = strchr(sep, ':');
-		if (!sep)
-			goto bad_line;
-	        *sep = '\0'; sep += 1;
+		if (!sep) goto bad_line;
+        *sep = '\0'; sep += 1;
 		addrtype_s = sep;
 		sep = strchr(sep, ':');
-		if (!sep)
-			goto bad_line;
-	        *sep = '\0'; sep += 1;
+		if (!sep) goto bad_line;
+        *sep = '\0'; sep += 1;
 		reward_s = sep;
 		sep = strchr(sep, ';');
-		if (!sep)
-			goto bad_line;
-	        *sep = '\0'; sep += 1;
+		if (!sep) goto bad_line;
+        *sep = '\0'; sep += 1;
 		comment = sep;
 
-		wip = server_workitem_new(reqp, pfx, pubkey_s, addrtype_s,
-					  reward_s, comment);
-		if (!wip)
-			goto bad_line;
+		wip = server_workitem_new(reqp, pfx, pubkey_s, addrtype_s, reward_s, comment);
+		if (!wip) goto bad_line;
 		if (server_workitem_add(reqp, wip)) {
 			server_workitem_free(wip);
 			goto bad_line;
@@ -578,16 +543,10 @@ avl_root_t *work = &scp->items;
 		     wip != NULL;
 		     wip = workitem_avl_next(wip)) {
                      char *pubhex = EC_POINT_point2hex(EC_KEY_get0_group(scp->dummy_key),
-                                    wip->pubkey,
-                                    POINT_CONVERSION_UNCOMPRESSED,
-                                    NULL);
+                                    wip->pubkey, POINT_CONVERSION_UNCOMPRESSED, NULL);
 
-			printf("PubKey: \"%s\" Pattern: \"%s\" Reward: %f "
-			       "Value: %f BTC/Mkey\n",
-			       pubhex,
-			       wip->pattern,
-			       wip->reward,
-			       wip->value);
+			printf("PubKey: \"%s\" Pattern: \"%s\" Reward: %f Value: %f BTC/Mkey\n",
+			       pubhex, wip->pattern, wip->reward, wip->value);
 		}
 		if (pbatch->nitems > 1)
 			printf("Batch of %d, total value: %f BTC/Mkey\n",
@@ -601,18 +560,15 @@ free_pkb_tree(avl_root_t *rootp, pubkeybatch_t *save_pkb)
 	pubkeybatch_t *pkb;
 	while ((pkb = pubkeybatch_avl_first(rootp)) != NULL) {
 		avl_remove(rootp, &pkb->avlent);
-		if (pkb != save_pkb)
-			server_batch_free(pkb);
+		if (pkb != save_pkb) server_batch_free(pkb);
 	}
 }
 
 void
 server_request_free(server_request_t *reqp)
 {
-	if (reqp->part_buf != NULL)
-		free(reqp->part_buf);
-	if (!avl_root_empty(&reqp->items))
-		free_pkb_tree(&reqp->items, NULL);
+	if (reqp->part_buf != NULL) free(reqp->part_buf);
+	if (!avl_root_empty(&reqp->items)) free_pkb_tree(&reqp->items, NULL);
 	free(reqp);
 }
 
@@ -631,8 +587,7 @@ server_context_getwork(server_context_t *ctxp)
 	creq = curl_easy_init();
 	if (curl_easy_setopt(creq, CURLOPT_URL, ctxp->getwork) ||
 	    curl_easy_setopt(creq, CURLOPT_VERBOSE, ctxp->verbose > 1) ||
-	    curl_easy_setopt(creq, CURLOPT_WRITEFUNCTION,
-			     server_body_reader) ||
+	    curl_easy_setopt(creq, CURLOPT_WRITEFUNCTION, server_body_reader) ||
 	    curl_easy_setopt(creq, CURLOPT_FOLLOWLOCATION, 1) ||
 	    curl_easy_setopt(creq, CURLOPT_WRITEDATA, reqp)) {
 		fprintf(stderr, "Failed to set up libcurl\n");
@@ -643,8 +598,7 @@ server_context_getwork(server_context_t *ctxp)
 	curl_easy_cleanup(creq);
 
 	if (res != CURLE_OK) {
-		fprintf(stderr, "Get work request failed: %s\n",
-			curl_easy_strerror(res));
+		fprintf(stderr, "Get work request failed: %s\n", curl_easy_strerror(res));
 		server_request_free(reqp);
 		return -1;
 	}
@@ -656,25 +610,17 @@ server_context_getwork(server_context_t *ctxp)
 
 int
 server_context_submit_solution(server_context_t *ctxp,
-			       workitem_t *work,
-			       const char *privkey)
+			       workitem_t *work, const char *privkey)
 {
 	char urlbuf[8192];
 	char *pubhex;
 	CURL *creq;
 	CURLcode res;
 
-	pubhex = EC_POINT_point2hex(EC_KEY_get0_group(ctxp->dummy_key),
-				    work->pubkey,
-				    POINT_CONVERSION_UNCOMPRESSED,
-				    NULL);
-	snprintf(urlbuf, sizeof(urlbuf),
-		 "%s?key=%s%%3A%s&privateKey=%s&bitcoinAddress=%s",
-		 ctxp->submit,
-		 work->pattern,
-		 pubhex,
-		 privkey,
-		 ctxp->credit_addr);
+	pubhex = EC_POINT_point2hex(EC_KEY_get0_group(ctxp->dummy_key), work->pubkey,
+				    POINT_CONVERSION_UNCOMPRESSED, NULL);
+	snprintf(urlbuf, sizeof(urlbuf), "%s?key=%s%%3A%s&privateKey=%s&bitcoinAddress=%s",
+            ctxp->submit, work->pattern, pubhex, privkey, ctxp->credit_addr);
 	OPENSSL_free(pubhex);
 	creq = curl_easy_init();
 	if (curl_easy_setopt(creq, CURLOPT_URL, urlbuf) ||
@@ -686,8 +632,7 @@ server_context_submit_solution(server_context_t *ctxp,
 
 	res = curl_easy_perform(creq);
 	if (res != CURLE_OK) {
-		fprintf(stderr, "Submission failed: %s\n",
-			curl_easy_strerror(res));
+		fprintf(stderr, "Submission failed: %s\n", curl_easy_strerror(res));
 		curl_easy_cleanup(creq);
 		return -1;
 	}
@@ -737,15 +682,13 @@ check_solution(server_context_t *scp, pubkeybatch_t *pbatch)
 	int res = 0;
 	pthread_mutex_lock(&soln_lock);
 	if (soln_private_key != NULL) {
-		workitem_t *wip = workitem_avl_search(&pbatch->items,
-						      soln_pattern);
+		workitem_t *wip = workitem_avl_search(&pbatch->items, soln_pattern);
 		assert(wip != NULL);
 		avl_remove(&pbatch->items, &wip->avlent);
 		pbatch->nitems--;
 		pbatch->total_value -= wip->value;
 		server_context_submit_solution(scp, wip, soln_private_key);
-		if (wip->pubkey == pbatch->pubkey)
-			wip->pubkey = NULL;
+		if (wip->pubkey == pbatch->pubkey) wip->pubkey = NULL;
 		server_workitem_free(wip);
 		free_soln();
 		res = 1;
@@ -879,8 +822,7 @@ main(int argc, char **argv)
 		case 'i':
 			interval = atoi(optarg);
 			if (interval < 1) {
-				fprintf(stderr,
-					"Invalid interval '%s'\n", optarg);
+				fprintf(stderr, "Invalid interval '%s'\n", optarg);
 				return 1;
 			}
 			break;
@@ -893,16 +835,14 @@ main(int argc, char **argv)
 		case 'w':
 			worksize = atoi(optarg);
 			if (worksize == 0) {
-				fprintf(stderr,
-					"Invalid work size '%s'\n", optarg);
+				fprintf(stderr, "Invalid work size '%s'\n", optarg);
 				return 1;
 			}
 			break;
 		case 't':
 			nthreads = atoi(optarg);
 			if (nthreads == 0) {
-				fprintf(stderr,
-					"Invalid thread count '%s'\n", optarg);
+				fprintf(stderr, "Invalid thread count '%s'\n", optarg);
 				return 1;
 			}
 			break;
@@ -913,23 +853,18 @@ main(int argc, char **argv)
 				nrows = strtol(pend+1, NULL, 0);
 			}
 			if (!nrows || !ncols) {
-				fprintf(stderr,
-					"Invalid grid size '%s'\n", optarg);
+				fprintf(stderr, "Invalid grid size '%s'\n", optarg);
 				return 1;
 			}
 			break;
 		case 'b':
 			invsize = atoi(optarg);
 			if (!invsize) {
-				fprintf(stderr,
-					"Invalid modular inverse size '%s'\n",
-					optarg);
+				fprintf(stderr, "Invalid modular inverse size '%s'\n", optarg);
 				return 1;
 			}
 			if (invsize & (invsize - 1)) {
-				fprintf(stderr,
-					"Modular inverse size must be "
-					"a power of 2\n");
+				fprintf(stderr, "Modular inverse size must be a power of 2\n");
 				return 1;
 			}
 			break;
@@ -941,9 +876,7 @@ main(int argc, char **argv)
 			break;
 		case 'D':
 			if (ndevstrs >= MAX_DEVS) {
-				fprintf(stderr,
-					"Too many OpenCL devices (limit %d)\n",
-					MAX_DEVS);
+				fprintf(stderr, "Too many OpenCL devices (limit %d)\n", MAX_DEVS);
 				return 1;
 			}
 			devstrs[ndevstrs++] = optarg;
@@ -957,14 +890,6 @@ main(int argc, char **argv)
 		}
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x10000000L
-	/* Complain about older versions of OpenSSL */
-	if (verbose > 0) {
-		fprintf(stderr,
-			"WARNING: Built with " OPENSSL_VERSION_TEXT "\n"
-			"WARNING: Use OpenSSL 1.0.0d+ for best performance\n");
-	}
-#endif
 	curl_easy_init();
 
 	vcp = vg_prefix_context_new(0, 128, 0);
@@ -992,46 +917,37 @@ main(int argc, char **argv)
 	scp->verbose = verbose;
 
 	/* Get the initial bounty list, abort on failure */
-	if (server_context_getwork(scp))
-		return 1;
+	if (server_context_getwork(scp)) return 1;
 
 	/* Set up OpenCL */
 	res = 0;
 	if (ndevstrs) {
 		for (opt = 0; opt < ndevstrs; opt++) {
 			vocp = vg_ocl_context_new_from_devstr(vcp, devstrs[opt],
-							      safe_mode,
-							      verify_mode);
+							      safe_mode, verify_mode);
 			if (!vocp) {
-				fprintf(stderr,
-				"Could not open device '%s', ignoring\n",
-					devstrs[opt]);
+				fprintf(stderr, "Could not open device '%s', ignoring\n", devstrs[opt]);
 			} else {
 				res++;
 			}
 		}
 	} else {
-		vocp = vg_ocl_context_new(vcp, platformidx, deviceidx,
-					  safe_mode, verify_mode,
-					  worksize, nthreads,
-					  nrows, ncols, invsize);
-		if (vocp)
-			res++;
+		vocp = vg_ocl_context_new(vcp, platformidx, deviceidx, safe_mode, verify_mode,
+					  worksize, nthreads, nrows, ncols, invsize);
+		if (vocp) res++;
 	}
 	if (!res) {
 		vg_ocl_enumerate_devices();
 		return 1;
 	}
 
-	if (verbose > 1)
-		dump_work(scp);
+	if (verbose > 1) dump_work(scp);
 
 	while (1) {
-		if (avl_root_empty(&scp->items))
-			server_context_getwork(scp);
+		if (avl_root_empty(&scp->items)) server_context_getwork(scp);
 
 		pkb = most_valuable_pkb(scp);
-		
+
 		if( pkb && pkb->total_value < min_value ) {
 			fprintf(stderr,
 				"Value of current work (%f BTC/Mkey) does not meet minimum value (%f BTC/Mkey)\n",
@@ -1040,11 +956,10 @@ main(int argc, char **argv)
 			was_sleeping = 1;
 			pkb = NULL;
 		}
-		
+
 		/* If the work item is the same as the one we're executing,
 		   keep it */
-		if (pkb && active_pkb &&
-		    server_pubkeybatch_equal(scp, active_pkb, pkb))
+		if (pkb && active_pkb && server_pubkeybatch_equal(scp, active_pkb, pkb))
 			pkb = active_pkb;
 
 		if (thread_started && (!active_pkb || (pkb != active_pkb))) {
@@ -1057,14 +972,12 @@ main(int argc, char **argv)
 			}
 			vg_context_clear_all_patterns(vcp);
 
-			if (verbose > 1)
-				dump_work(scp);
+			if (verbose > 1) dump_work(scp);
 		}
 
 		if (!pkb) {
 			if (!was_sleeping) {
-				fprintf(stderr,
-					"No work available, sleeping\n");
+				fprintf(stderr, "No work available, sleeping\n");
 				was_sleeping = 1;
 			}
 
@@ -1075,30 +988,22 @@ main(int argc, char **argv)
 			for (wip = workitem_avl_first(&pkb->items);
 			     wip != NULL;
 			     wip = workitem_avl_next(wip)) {
-				fprintf(stderr,
-					"Searching for pattern: \"%s\" "
+				fprintf(stderr, "Searching for pattern: \"%s\" "
 					"Reward: %f Value: %f BTC/Mkey\n",
-					wip->pattern,
-					wip->reward,
-					wip->value);
+					wip->pattern, wip->reward, wip->value);
 				vcp->vc_addrtype = wip->addrtype;
-				if (!vg_context_add_patterns(vcp,
-							     &wip->pattern,
-							     1)) {
-					fprintf(stderr,
-					   "WARNING: could not add pattern\n");
+				if (!vg_context_add_patterns(vcp, &wip->pattern, 1)) {
+					fprintf(stderr, "WARNING: could not add pattern\n");
 				}
-				
+
 				assert(vcp->vc_npatterns);
 			}
 
-			fprintf(stderr, 
-				"\nTotal value for current work: %f BTC/Mkey\n", 
+			fprintf(stderr, "\nTotal value for current work: %f BTC/Mkey\n",
 				pkb->total_value);
-			
+
 			res = vg_context_start_threads(vcp);
-			if (res)
-				return 1;
+			if (res) return 1;
 			thread_started = 1;
 			active_pkb = pkb;
 		}
@@ -1112,13 +1017,11 @@ main(int argc, char **argv)
 		pthread_mutex_lock(&soln_lock);
 		res = 0;
 		if (!soln_private_key)
-			res = pthread_cond_timedwait(&soln_cond,
-						     &soln_lock, &sleepy);
+			res = pthread_cond_timedwait(&soln_cond, &soln_lock, &sleepy);
 		pthread_mutex_unlock(&soln_lock);
 
 		if (res == 0) {
-			if (check_solution(scp, active_pkb))
-				active_pkb = NULL;
+			if (check_solution(scp, active_pkb)) active_pkb = NULL;
 		}
 		else if (res == ETIMEDOUT) {
 			free_pkb_tree(&scp->items, active_pkb);

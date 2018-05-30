@@ -1,6 +1,6 @@
 /*
- * Vanitygen, vanity bitcoin address generator
- * Copyright (C) 2011 <samr7@cs.washington.edu>
+ * Vanitygen EOS, vanity EOS address generator
+ * Copyright (C) 2018 <jkuang@21cn.com>
  *
  * Vanitygen is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -78,8 +78,7 @@ typedef void (*vg_output_error_func_t)(vg_context_t *vcp, const char *info);
 typedef void (*vg_output_match_func_t)(vg_context_t *vcp, EC_KEY *pkey,
 				       const char *pattern);
 typedef void (*vg_output_timing_func_t)(vg_context_t *vcp, double count,
-					unsigned long long rate,
-					unsigned long long total);
+					unsigned long long rate, unsigned long long total);
 
 enum vg_format {
 	VCF_PUBKEY,
@@ -158,8 +157,7 @@ extern int vg_output_timing(vg_context_t *vcp, int cycle, struct timeval *last);
 extern void vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey,
 				    const char *pattern);
 extern void vg_output_timing_console(vg_context_t *vcp, double count,
-				     unsigned long long rate,
-				     unsigned long long total);
+				     unsigned long long rate, unsigned long long total);
 
 
 

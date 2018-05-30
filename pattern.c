@@ -1,6 +1,6 @@
 /*
- * Vanitygen, vanity bitcoin address generator
- * Copyright (C) 2011 <samr7@cs.washington.edu>
+ * Vanitygen EOS, vanity EOS address generator
+ * Copyright (C) 2018 <jkuang@21cn.com>
  *
  * Vanitygen is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -315,8 +315,7 @@ vg_output_timing(vg_context_t *vcp, int cycle, struct timeval *last)
 			tip->ti_last_rate = myrate;
 			rate += myrate;
 
-		} else
-			rate += tip->ti_last_rate;
+		} else rate += tip->ti_last_rate;
 	}
 	if (!mytip) {
 		mytip = (timing_info_t *) malloc(sizeof(*tip));
@@ -567,8 +566,7 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 			printf( "%s\n", privkey_buf);
 		}
 		else {
-			printf("%sAddress: %s\n"
-			       "%s%s: %s\n",
+			printf("%sAddress: %s\n%s%s: %s\n",
 			       ticker, addr_buf, ticker, keytype, privkey_buf);
 		}
 	}
@@ -586,8 +584,7 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 			}
 			else {
 				fprintf(fp, "%sPattern: %s\n", ticker, pattern);
-				fprintf(fp, "%sAddress: %s\n"
-					"%s%s: %s\n",
+				fprintf(fp, "%sAddress: %s\n%s%s: %s\n",
 					ticker, addr_buf, ticker, keytype, privkey_buf);
 				fclose(fp);
 			}
@@ -605,8 +602,7 @@ vg_context_free(vg_context_t *vcp)
 }
 
 int
-vg_context_add_patterns(vg_context_t *vcp,
-			const char ** const patterns, int npatterns)
+vg_context_add_patterns(vg_context_t *vcp, const char ** const patterns, int npatterns)
 {
 	vcp->vc_pattern_generation++;
 	return vcp->vc_add_patterns(vcp, patterns, npatterns);
@@ -670,8 +666,7 @@ vg_context_wait_for_completion(vg_context_t *vcp)
  * Find the bignum ranges that produce a given prefix.
  */
 static int
-get_prefix_ranges(int addrtype, const char *pfx, BIGNUM **result,
-		  BN_CTX *bnctx)
+get_prefix_ranges(int addrtype, const char *pfx, BIGNUM **result, BN_CTX *bnctx)
 {
 	int p;
 	int ret = -1;
@@ -1324,7 +1319,7 @@ vg_prefix_addr_sort(vg_context_t *vcp, void *buf)
 	vg_prefix_t *vp;
 	unsigned char *cbuf = (unsigned char *) buf;
 	unsigned char bnbuf[40];
-	int nbytes, ncopy, nskip, npfx = 0;
+	int nbytes, ncopy, npfx = 0;
 
 	/*
 	 * Walk the prefix tree in order, copy the upper and lower bound
@@ -1338,18 +1333,16 @@ vg_prefix_addr_sort(vg_context_t *vcp, void *buf)
 		/* Low */
 		nbytes = BN_bn2bin(vp->vp_low, bnbuf);
 		ncopy = ((nbytes >= 33) ? 33 : ((nbytes > 4) ? (nbytes - 4) : 0));
-		nskip = (nbytes >= 33) ? (nbytes - 33) : 0;
-        memset(cbuf, 0, 36 - ncopy);
-		memcpy(cbuf + (33 - ncopy), bnbuf + nskip, ncopy);
+        memset(cbuf, 0, 36);
+		memcpy(cbuf + (33 - ncopy), bnbuf, ncopy);
 		cbuf += 36;
 
 		/* High */
 		nbytes = BN_bn2bin(vp->vp_high, bnbuf);
 		ncopy = ((nbytes >= 33) ? 33 : ((nbytes > 4) ? (nbytes - 4) : 0));
-		nskip = (nbytes >= 33) ? (nbytes - 33) : 0;
 		// if (ncopy < 33)
-		memset(cbuf, 0, 36 - ncopy);
-		memcpy(cbuf + (33 - ncopy), bnbuf + nskip, ncopy);
+		memset(cbuf, 0, 36);
+		memcpy(cbuf + (33 - ncopy), bnbuf, ncopy);
 		cbuf += 36;
 	}
 	return npfx;

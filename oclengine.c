@@ -1,6 +1,6 @@
 /*
- * Vanitygen, vanity bitcoin address generator
- * Copyright (C) 2011 <samr7@cs.washington.edu>
+ * Vanitygen EOS, vanity EOS address generator
+ * Copyright (C) 2018 <jkuang@21cn.com>
  *
  * Vanitygen is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -1455,9 +1455,9 @@ vg_ocl_prefix_check(vg_ocl_context_t *vocp, int slot)
 			 */
 //			tablesize = ocl_found_out[2];
 			fprintf(stderr, "Match idx: %d\n", ocl_found_out[1]);
-			fprintf(stderr, "CPU hash: ");
+			fprintf(stderr, "CPU Pub Addr: ");
 			fdumphex(stderr, vxcp->vxc_binres, 33);
-			fprintf(stderr, "GPU hash: ");
+			fprintf(stderr, "GPU Pub Addr: ");
 			fdumphex(stderr, (unsigned char *) (ocl_found_out + 2), 33);
 			fprintf(stderr, "Found delta: %d Start delta: %d\n",
 			       found_delta, orig_delta);
@@ -1789,10 +1789,8 @@ vg_opencl_loop(vg_exec_context_t *arg)
 
 	round = vocp->voc_ocl_rows * vocp->voc_ocl_cols;
 
-	if (!vcp->vc_remove_on_match &&
-	    (vcp->vc_chance >= 1.0f) &&
-	    (vcp->vc_chance < round) &&
-	    (vcp->vc_verbose > 0)) {
+	if (!vcp->vc_remove_on_match && (vcp->vc_chance >= 1.0f) &&
+	    (vcp->vc_chance < round) && (vcp->vc_verbose > 0)) {
 		fprintf(stderr, "WARNING: low pattern difficulty\n");
 		fprintf(stderr,
 			"WARNING: better match throughput is possible "
