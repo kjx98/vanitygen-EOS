@@ -1268,7 +1268,6 @@ hash_ec_point(uint *hash_out, __global bn_word *xy, __global bn_word *zip)
 	bn_mul_mont(&c, &c, &zzi);  /* Y / Z^3 */
 	bn_from_mont(&c, &c);
 
-#ifdef  OLD_BTC
 	if (!compressed_address) {
 		#define hash_ec_point_inner_5(i)			\
 			wl = wh;					\
@@ -1276,8 +1275,21 @@ hash_ec_point(uint *hash_out, __global bn_word *xy, __global bn_word *zip)
 			hash1[BN_NWORDS + i] = (wl << 24) | (wh >> 8);
 
 		bn_unroll(hash_ec_point_inner_5);
-	} else
-#endif
+		if (bn_is_odd(c)) {
+			hash1[0] |= 0x01000000; /* 0x03 for odd y */
+		}
+		hash_out[0] = hash1[0];
+		hash_out[1] = hash1[1];
+		hash_out[2] = hash1[2];
+		hash_out[3] = hash1[3];
+		hash_out[4] = hash1[4];
+		hash_out[5] = hash1[5];
+		hash_out[6] = hash1[6];
+		hash_out[7] = hash1[7];
+		hash_out[8] = hash1[8];
+	}
+#ifdef  OLD_BTC
+	else
 	{
 		if (bn_is_odd(c)) {
 			hash1[0] |= 0x01000000; /* 0x03 for odd y */
@@ -1305,7 +1317,6 @@ hash_ec_point(uint *hash_out, __global bn_word *xy, __global bn_word *zip)
 		hash1[15] = 33 * 8;
 	}
 
-#ifdef  OLD_BTC
 	/*
 	 * Hash the first 64 bytes of the buffer
 	 */
