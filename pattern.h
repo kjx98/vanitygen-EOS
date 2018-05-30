@@ -73,6 +73,7 @@ typedef int (*vg_add_pattern_func_t)(vg_context_t *,
 				     int npatterns);
 typedef void (*vg_clear_all_patterns_func_t)(vg_context_t *);
 typedef int (*vg_test_func_t)(vg_exec_context_t *);
+typedef int (*vg_addr_sort_func_t)(vg_context_t *vcp, void *buf);
 typedef void (*vg_output_error_func_t)(vg_context_t *vcp, const char *info);
 typedef void (*vg_output_match_func_t)(vg_context_t *vcp, EC_KEY *pkey,
 				       const char *pattern);
@@ -117,6 +118,7 @@ struct _vg_context_s {
 	vg_add_pattern_func_t		vc_add_patterns;
 	vg_clear_all_patterns_func_t	vc_clear_all_patterns;
 	vg_test_func_t			vc_test;
+	vg_addr_sort_func_t		vc_addr_sort;
 
 	/* Performance related members */
 	unsigned long long		vc_timing_total;

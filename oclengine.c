@@ -1341,7 +1341,7 @@ vg_ocl_gethash_check(vg_ocl_context_t *vocp, int slot)
 	round = vocp->voc_ocl_cols * vocp->voc_ocl_rows;
 
 	for (i = 0; i < round; i++, vxcp->vxc_delta++) {
-		memcpy(&vxcp->vxc_binres[0], ocl_hashes_out + (36*i), 33);
+		memcpy(&vxcp->vxc_binres[0], ocl_hashes_out + (36*i), 36);
 
 		res = test_func(vxcp);
 		if (res) break;
@@ -1721,11 +1721,9 @@ vg_opencl_thread(void *arg)
 		pthread_mutex_unlock(&vocp->voc_lock);
 
 		gettimeofday(&tv, NULL);
-		if (!vg_ocl_kernel_start(vocp, slot, cols, rows, invsize))
-			halt = 1;
+		if (!vg_ocl_kernel_start(vocp, slot, cols, rows, invsize)) halt = 1;
 
-		if (!vg_ocl_kernel_wait(vocp, slot))
-			halt = 1;
+		if (!vg_ocl_kernel_wait(vocp, slot)) halt = 1;
 
 		if (vcp->vc_verbose > 1) {
 			gettimeofday(&tvt, NULL);
@@ -1808,8 +1806,7 @@ vg_opencl_loop(vg_exec_context_t *arg)
 	nrows = vocp->voc_ocl_rows;
 	ncols = vocp->voc_ocl_cols;
 
-	ppbase = (EC_POINT **) malloc((nrows + ncols) *
-				      sizeof(EC_POINT*));
+	ppbase = (EC_POINT **) malloc((nrows + ncols) * sizeof(EC_POINT*));
 	if (!ppbase) goto enomem;
 
 	for (i = 0; i < (nrows + ncols); i++) {
@@ -1884,7 +1881,8 @@ l_rekey:
 	npoints = 0;
 	if (vcp->vc_privkey_prefix_length > 0) {
 		BIGNUM *pkbn = BN_dup(EC_KEY_get0_private_key(pkey));
-		memcpy((char *)pkbn->d + 32 - vcp->vc_privkey_prefix_length, vcp->vc_privkey_prefix, vcp->vc_privkey_prefix_length);
+		memcpy((char *)pkbn->d + 32 - vcp->vc_privkey_prefix_length,
+                vcp->vc_privkey_prefix, vcp->vc_privkey_prefix_length);
 		EC_KEY_set_private_key(pkey, pkbn);
 
 		EC_POINT *origin = EC_POINT_new(pgroup);
@@ -1916,8 +1914,7 @@ l_rekey:
 	EC_POINTs_make_affine(pgroup, ncols, ppbase, vxcp->vxc_bnctx);
 
 	/* Fill the sequential point array */
-	ocl_points_in = (unsigned char *)
-		vg_ocl_map_arg_buffer(vocp, 0, 3, 1);
+	ocl_points_in = (unsigned char *) vg_ocl_map_arg_buffer(vocp, 0, 3, 1);
 	if (!ocl_points_in) {
 		fprintf(stderr, "ERROR: Could not map column buffer\n");
 		goto enomem;
@@ -1961,16 +1958,14 @@ l_rekey:
 
 			c += round;
 			if (!halt && (c >= output_interval)) {
-				output_interval =
-					vg_output_timing(vcp, c, &tvstart);
+				output_interval = vg_output_timing(vcp, c, &tvstart);
 				c = 0;
 			}
 			vg_exec_context_yield(vxcp);
 
 			/* If the patterns changed, reload it to the GPU */
 			if (vocp->voc_rekey_func &&
-			    (pattern_generation !=
-			     vcp->vc_pattern_generation)) {
+			    (pattern_generation != vcp->vc_pattern_generation)) {
 				vocp->voc_pattern_rewrite = 1;
 				rekey_at = 0;
 			}

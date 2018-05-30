@@ -534,14 +534,13 @@ main(int argc, char **argv)
 			fprintf(stderr, "Failed to load pattern file\n");
 			return 1;
 		}
-		if (fp != stdin)
-			fclose(fp);
+		if (fp != stdin) fclose(fp);
 
 		if (!regex)
 			vg_prefix_context_set_case_insensitive(vcp, pattfpi[i]);
 
 		if (!vg_context_add_patterns(vcp, (const char ** const) patterns, npatterns))
-		return 1;
+            return 1;
 	}
 
 	if (!vcp->vc_npatterns) {
@@ -556,8 +555,8 @@ main(int argc, char **argv)
 	vcp->vc_key_protect_pass = key_password;
 	if (key_password) {
 		if (!vg_check_password_complexity(key_password, verbose))
-			fprintf(stderr, "WARNING: Protecting private keys with "
-				"weak password\n");
+			fprintf(stderr,
+                "WARNING: Protecting private keys with weak password\n");
 	}
 
 	if ((verbose > 0) && regex && (vcp->vc_npatterns > 1))

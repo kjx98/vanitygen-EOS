@@ -238,7 +238,7 @@ main(int argc, char **argv)
 				optarg, NULL, NULL);
 			EC_KEY_free(pkey);
 			if (pubkey_base == NULL) {
-				fprintf(stderr "Invalid base pubkey\n");
+				fprintf(stderr, "Invalid base pubkey\n");
 				return 1;
 			}
 			break;
@@ -361,8 +361,7 @@ main(int argc, char **argv)
 
 		if (!regex) vg_prefix_context_set_case_insensitive(vcp, pattfpi[i]);
 
-		if (!vg_context_add_patterns(vcp, (const char ** const) patterns,
-					     npatterns))
+		if (!vg_context_add_patterns(vcp, (const char ** const) patterns, npatterns))
             return 1;
 	}
 
@@ -379,8 +378,7 @@ main(int argc, char **argv)
 	if (key_password) {
 		if (!vg_check_password_complexity(key_password, verbose))
 			fprintf(stderr,
-				"WARNING: Protecting private keys with "
-				"weak password\n");
+				"WARNING: Protecting private keys with weak password\n");
 	}
 
 	if ((verbose > 0) && regex && (vcp->vc_npatterns > 1))
@@ -391,8 +389,7 @@ main(int argc, char **argv)
 			vocp = vg_ocl_context_new_from_devstr(vcp, devstrs[opt],
 							      safe_mode, verify_mode);
 			if (!vocp) {
-				fprintf(stderr, "Could not open device '%s', ignoring\n",
-					devstrs[opt]);
+				fprintf(stderr, "Could not open device '%s', ignoring\n", devstrs[opt]);
 			} else {
 				opened++;
 			}

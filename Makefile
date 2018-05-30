@@ -35,4 +35,4 @@ oclvanityminer: oclvanityminer.o oclengine.o pattern.o util.o base58.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(OPENCL_LIBS) -lcurl
  
 clean:
-	rm -rf $(OBJS) $(PROGS) $(TESTS) bin obj
+	rm -rf $(OBJS) $(PROGS) $(TESTS) bin obj *.oclbin

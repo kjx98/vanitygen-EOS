@@ -1287,6 +1287,15 @@ hash_ec_point(uint *hash_out, __global bn_word *xy, __global bn_word *zip)
 		 * Put in the last byte + SHA-2 padding.
 		 */
 		hash1[8] = wh << 24 | 0x800000;
+		hash_out[0] = hash1[0];
+		hash_out[1] = hash1[1];
+		hash_out[2] = hash1[2];
+		hash_out[3] = hash1[3];
+		hash_out[4] = hash1[4];
+		hash_out[5] = hash1[5];
+		hash_out[6] = hash1[6];
+		hash_out[7] = hash1[7];
+		hash_out[8] = hash1[8];
 		hash1[9] = 0;
 		hash1[10] = 0;
 		hash1[11] = 0;

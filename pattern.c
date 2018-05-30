@@ -254,8 +254,10 @@ vg_exec_context_calc_address(vg_exec_context_t *vxcp)
 				 eckey_buf, sizeof(eckey_buf), vxcp->vxc_bnctx);
     memcpy(vxcp->vxc_binres, eckey_buf, 33);
     if (eckey_buf[len-1] & 1) vxcp->vxc_binres[0] = 3; else vxcp->vxc_binres[0] = 2;
+#ifdef  ommit
     RIPEMD160(vxcp->vxc_binres, 33, hash1);
     memcpy(vxcp->vxc_binres+33, hash1, 4);
+#endif
 	EC_POINT_free(pubkey);
 }
 
@@ -620,7 +622,8 @@ vg_context_clear_all_patterns(vg_context_t *vcp)
 int
 vg_context_addr_sort(vg_context_t *vcp, void *buf)
 {
-    return vg_prefix_addr_sort(vcp, buf);
+	if (!vcp->vc_addr_sort) return 0;
+	return vcp->vc_addr_sort(vcp, buf);
 }
 
 int
@@ -1336,16 +1339,16 @@ vg_prefix_addr_sort(vg_context_t *vcp, void *buf)
 		nbytes = BN_bn2bin(vp->vp_low, bnbuf);
 		ncopy = ((nbytes >= 33) ? 33 : ((nbytes > 4) ? (nbytes - 4) : 0));
 		nskip = (nbytes >= 33) ? (nbytes - 33) : 0;
-		if (ncopy < 33) memset(cbuf, 0, 33 - ncopy);
+        memset(cbuf, 0, 36 - ncopy);
 		memcpy(cbuf + (33 - ncopy), bnbuf + nskip, ncopy);
 		cbuf += 36;
 
 		/* High */
 		nbytes = BN_bn2bin(vp->vp_high, bnbuf);
-		ncopy = ((nbytes >= 33) ? 33 :
-			 ((nbytes > 4) ? (nbytes - 4) : 0));
+		ncopy = ((nbytes >= 33) ? 33 : ((nbytes > 4) ? (nbytes - 4) : 0));
 		nskip = (nbytes >= 33) ? (nbytes - 33) : 0;
-		if (ncopy < 33) memset(cbuf, 0, 33 - ncopy);
+		// if (ncopy < 33)
+		memset(cbuf, 0, 36 - ncopy);
 		memcpy(cbuf + (33 - ncopy), bnbuf + nskip, ncopy);
 		cbuf += 36;
 	}
@@ -1370,6 +1373,7 @@ vg_prefix_context_new(int addrtype, int privtype, int caseinsensitive)
 		vcpp->base.vc_add_patterns = vg_prefix_context_add_patterns;
 		vcpp->base.vc_clear_all_patterns = vg_prefix_context_clear_all_patterns;
 		vcpp->base.vc_test = vg_prefix_test;
+		vcpp->base.vc_addr_sort = vg_prefix_addr_sort;
 		avl_root_init(&vcpp->vcp_avlroot);
 		vcpp->vcp_difficulty = BN_new();
 		vcpp->vcp_caseinsensitive = caseinsensitive;
@@ -1603,6 +1607,7 @@ vg_regex_context_new(int addrtype, int privtype)
 		vcrp->base.vc_add_patterns = vg_regex_context_add_patterns;
 		vcrp->base.vc_clear_all_patterns = vg_regex_context_clear_all_patterns;
 		vcrp->base.vc_test = vg_regex_test;
+		vcrp->base.vc_addr_sort = NULL;
 		vcrp->vcr_regex = NULL;
 		vcrp->vcr_nalloc = 0;
 	}

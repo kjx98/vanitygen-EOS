@@ -30,7 +30,16 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add directory="/usr/local/ssl/include" />
 		</Compiler>
+		<Linker>
+			<Add library="OpenCL" />
+			<Add library="crypto" />
+			<Add library="dl" />
+			<Add library="pthread" />
+			<Add library="pcre" />
+			<Add directory="/usr/local/ssl/lib" />
+		</Linker>
 		<Unit filename="base58.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -52,7 +61,11 @@
 		<Unit filename="util.h" />
 		<Extensions>
 			<code_completion />
-			<debugger />
+			<debugger>
+				<remote_debugging target="Debug">
+					<options conn_type="0" serial_baud="115200" additional_cmds="set  args 618" />
+				</remote_debugging>
+			</debugger>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
