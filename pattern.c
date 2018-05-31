@@ -1483,37 +1483,16 @@ vg_regex_test(vg_exec_context_t *vxcp)
 {
 	vg_regex_context_t *vcrp = (vg_regex_context_t *) vxcp->vxc_vc;
 
-	int i, zpfx, p, d, nres, re_vec[9];
-	char b58[64];
-	BIGNUM *bnrem;
-	BIGNUM *bn, *bndiv, *bnptmp;
+	int i, d, nres, re_vec[9];
+	unsigned char b58[64];
 	int res = 0;
 	int keylen=37;
+	size_t  b58_len;
 
 	pcre *re;
 
-	bnrem = BN_new();
-
-	bn = vxcp->vxc_bntmp;
-	bndiv = vxcp->vxc_bntmp2;
-
-	BN_bin2bn(vxcp->vxc_binres, keylen, bn);
-
-	/* Compute the complete encoded address */
-	for (zpfx = 0; zpfx < keylen && vxcp->vxc_binres[zpfx] == 0; zpfx++);
-	p = sizeof(b58) - 1;
-	b58[p] = '\0';
-	while (!BN_is_zero(bn)) {
-		BN_div(bndiv, bnrem, bn, vxcp->vxc_bnbase, vxcp->vxc_bnctx);
-		bnptmp = bn;
-		bn = bndiv;
-		bndiv = bnptmp;
-		d = BN_get_word(bnrem);
-		b58[--p] = vg_b58_alphabet[d];
-	}
-	while (zpfx--) {
-		b58[--p] = vg_b58_alphabet[0];
-	}
+    b58_len = sizeof(b58);
+    if (!b58enc(b58, &b58_len, vxcp->vxc_binres, keylen)) return res;
 
 	/*
 	 * Run the regular expressions on it
@@ -1527,7 +1506,7 @@ restart_loop:
 	}
 	for (i = 0; i < nres; i++) {
 		d = pcre_exec(vcrp->vcr_regex[i], vcrp->vcr_regex_extra[i],
-			      &b58[p], (sizeof(b58) - 1) - p, 0, 0,
+			      (const char *)b58, b58_len-1, 0, 0,
 			      re_vec, sizeof(re_vec)/sizeof(re_vec[0]));
 
 		if (d <= 0) {
@@ -1578,7 +1557,6 @@ restart_loop:
 		res = 1;
 	}
 out:
-	BN_clear_free(bnrem);
 	return res;
 }
 

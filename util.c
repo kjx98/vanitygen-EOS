@@ -39,9 +39,9 @@
 #include "pattern.h"
 #include "util.h"
 
-const char *vg_b58_alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+static const char *vg_b58_alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-const signed char vg_b58_reverse_map[256] = {
+static const signed char vg_b58_reverse_map[256] = {
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -268,21 +268,19 @@ void
 vg_encode_address_compressed(const EC_POINT *ppoint, const EC_GROUP *pgroup,
 		  int addrtype, char *result)
 {
-	unsigned char eckey_buf[128], *pend;
-	unsigned char binres[21] = {0,};
+	unsigned char eckey_buf[128];
+	unsigned char binres[40] = {0,};
 	unsigned char hash1[32];
-
-	pend = eckey_buf;
+	int     keylen=37;
 
 	EC_POINT_point2oct(pgroup, ppoint, POINT_CONVERSION_COMPRESSED,
 			   eckey_buf, sizeof(eckey_buf), NULL);
-	pend = eckey_buf + 0x21;
     //binres[0] = addrtype;
     memcpy(result, "EOS", 3);
-    memcpy(binres, eckey_buf, pend - eckey_buf);
-    RIPEMD160(binres, 33, hash1);
-    memcpy(binres+33, hash1, 4);
-    vg_b58_encode(binres, 37, result+3);
+    memcpy(binres, eckey_buf, keylen-4);
+    RIPEMD160(binres, keylen-4, hash1);
+    memcpy(binres+keylen-4, hash1, 4);
+    vg_b58_encode(binres, keylen, result+3);
 }
 
 void
