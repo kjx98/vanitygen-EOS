@@ -5,7 +5,7 @@
  * Vanitygen is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
- * any later version. 
+ * any later version.
  *
  * Vanitygen is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
 
 #include <windows.h>
 #include <stdio.h>
-#include <pthread.h> 
+#include <pthread.h>
 #include "winglue.h"
 
 int
@@ -69,6 +69,7 @@ count_processors(void)
 }
 
 
+#ifndef __GCC__
 /*
  * struct timeval compatibility for Win32
  */
@@ -89,7 +90,7 @@ gettimeofday(struct timeval *tv, struct timezone *tz)
 		tv->tv_sec = (int) ((*(unsigned __int64 *) &ft -
 				     TIMESPEC_TO_FILETIME_OFFSET) /
 				    10000000);
-		tv->tv_usec = (int) ((*(unsigned __int64 *) &ft - 
+		tv->tv_usec = (int) ((*(unsigned __int64 *) &ft -
 				      TIMESPEC_TO_FILETIME_OFFSET -
 				      ((unsigned __int64) tv->tv_sec *
 				       (unsigned __int64) 10000000)) / 10);
@@ -97,6 +98,7 @@ gettimeofday(struct timeval *tv, struct timezone *tz)
 
 	return 0;
 }
+#endif // __GCC__
 
 void
 timeradd(struct timeval *a, struct timeval *b, struct timeval *result)
@@ -120,6 +122,7 @@ timersub(struct timeval *a, struct timeval *b, struct timeval *result)
 	}
 }
 
+#ifndef __GCC__
 /*
  * getopt() for Win32 -- public domain ripped from codeproject.com
  */
@@ -192,6 +195,7 @@ int getopt(int argc, TCHAR *argv[], TCHAR *optstring)
 
 	return c;
 }
+#endif // __GCC__
 
 /*
  * If ptw32 is being linked in as a static library, make sure that

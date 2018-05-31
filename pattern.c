@@ -30,7 +30,9 @@
 #include <openssl/ec.h>
 #include <openssl/obj_mac.h>
 
+#ifndef NO_PCRE
 #include <pcre.h>
+#endif // NO_PCRE
 
 #include "ticker.h"
 #include "pattern.h"
@@ -1379,8 +1381,10 @@ vg_prefix_context_new(int addrtype, int privtype, int caseinsensitive)
 
 typedef struct _vg_regex_context_s {
 	vg_context_t		base;
+#ifndef NO_PCRE
 	pcre 			**vcr_regex;
 	pcre_extra		**vcr_regex_extra;
+#endif
 	const char		**vcr_regex_pat;
 	unsigned long		vcr_nalloc;
 } vg_regex_context_t;
@@ -1395,6 +1399,9 @@ vg_regex_context_add_patterns(vg_context_t *vcp,
 	unsigned long i, nres, count;
 	void **mem;
 
+#ifdef  NO_PCRE
+	return 1;
+#else
 	if (!npatterns)
 		return 1;
 
@@ -1453,6 +1460,7 @@ vg_regex_context_add_patterns(vg_context_t *vcp,
 	vcrp->base.vc_npatterns_start += (nres - vcrp->base.vc_npatterns);
 	vcrp->base.vc_npatterns = nres;
 	return 1;
+#endif // NO_PCRE
 }
 
 static void
@@ -1460,10 +1468,12 @@ vg_regex_context_clear_all_patterns(vg_context_t *vcp)
 {
 	vg_regex_context_t *vcrp = (vg_regex_context_t *) vcp;
 	int i;
+#ifndef NO_PCRE
 	for (i = 0; i < vcrp->base.vc_npatterns; i++) {
 		if (vcrp->vcr_regex_extra[i]) pcre_free(vcrp->vcr_regex_extra[i]);
 		pcre_free(vcrp->vcr_regex[i]);
 	}
+#endif // NO_PCRE
 	vcrp->base.vc_npatterns = 0;
 	vcrp->base.vc_npatterns_start = 0;
 	vcrp->base.vc_found = 0;
@@ -1474,7 +1484,9 @@ vg_regex_context_free(vg_context_t *vcp)
 {
 	vg_regex_context_t *vcrp = (vg_regex_context_t *) vcp;
 	vg_regex_context_clear_all_patterns(vcp);
+#ifndef NO_PCRE
 	if (vcrp->vcr_nalloc) free(vcrp->vcr_regex);
+#endif // NO_PCRE
 	free(vcrp);
 }
 
@@ -1489,6 +1501,9 @@ vg_regex_test(vg_exec_context_t *vxcp)
 	int keylen=37;
 	size_t  b58_len;
 
+#ifdef  NO_PCRE
+    return res;
+#else
 	pcre *re;
 
     b58_len = sizeof(b58);
@@ -1558,6 +1573,7 @@ restart_loop:
 	}
 out:
 	return res;
+#endif // NO_PCRE
 }
 
 vg_context_t *
@@ -1579,7 +1595,9 @@ vg_regex_context_new(int addrtype, int privtype)
 		vcrp->base.vc_clear_all_patterns = vg_regex_context_clear_all_patterns;
 		vcrp->base.vc_test = vg_regex_test;
 		vcrp->base.vc_addr_sort = NULL;
+#ifndef NO_PCRE
 		vcrp->vcr_regex = NULL;
+#endif // NO_PCRE
 		vcrp->vcr_nalloc = 0;
 	}
 	return &vcrp->base;

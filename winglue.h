@@ -5,7 +5,7 @@
  * Vanitygen is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
- * any later version. 
+ * any later version.
  *
  * Vanitygen is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,18 +26,19 @@
 #define INLINE
 #define snprintf _snprintf
 
-struct timezone;
-
-extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 extern void timeradd(struct timeval *a, struct timeval *b,
 		     struct timeval *result);
 extern void timersub(struct timeval *a, struct timeval *b,
 		     struct timeval *result);
 
+#ifndef __GCC__
+struct timezone;
+extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 extern TCHAR *optarg;
 extern int optind;
 
 extern int getopt(int argc, TCHAR *argv[], TCHAR *optstring);
+#endif // __GCC__
 
 extern int count_processors(void);
 
