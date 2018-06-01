@@ -1,10 +1,10 @@
 CC=x86_64-w64-mingw32-gcc
 LIBS=-lcrypto -lm -lpthread
-CFLAGS=-g -Wall -pthread -DNO_PCRE
+CFLAGS=-O3 -Wall -pthread -DNO_PCRE
 OBJS=vanitygen.o keyconv.o pattern.o util.o base58.o
 PROGS=vanitygen keyconv oclvanitygen oclvanityminer
 LIBS+=-L/usr/local/ssl/lib -lws2_32 -lgdi32 -lcrypt32
-CFLAGS+=-I/usr/local/ssl/include
+CFLAGS+=-I/usr/local/ssl/include -std=gnu99
 
 PLATFORM=$(shell uname -s)
 ifeq ($(PLATFORM),Darwin)

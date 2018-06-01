@@ -3,6 +3,7 @@
 *.depend
 *.layout
 *.oclbin
+*.dbg
 vanitygen
 oclvanitygen
 oclvanityminer

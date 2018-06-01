@@ -307,7 +307,9 @@ usage(const char *name)
 "-v            Verbose output\n"
 "-q            Quiet output\n"
 "-n            Simulate\n"
+#ifndef	NO_PCRE
 "-r            Use regular expression match instead of prefix\n"
+#endif
 "              (Feasibility of expression is not checked)\n"
 "-i            Case-insensitive prefix search\n"
 "-k            Keep pattern and continue search after finding a match\n"
@@ -367,7 +369,12 @@ main(int argc, char **argv)
 
 	int i;
 
-	while ((opt = getopt(argc, argv, "vqnrik1ezE:P:Y:t:h?f:o:s:Z:a:")) != -1) {
+#ifndef	NO_PCRE
+	while ((opt = getopt(argc, argv, "vqnrik1ezE:P:Y:t:h?f:o:s:Z:a:")) != -1)
+#else
+	while ((opt = getopt(argc, argv, "vqnik1ezE:P:Y:t:h?f:o:s:Z:a:")) != -1)
+#endif // NO_PCRE
+	{
 		switch (opt) {
 		case 'c':
 		        compressed = 1;
