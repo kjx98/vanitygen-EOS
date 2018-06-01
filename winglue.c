@@ -69,7 +69,7 @@ count_processors(void)
 }
 
 
-#ifndef __GCC__
+#ifndef __GNUC__
 /*
  * struct timeval compatibility for Win32
  */
@@ -98,7 +98,7 @@ gettimeofday(struct timeval *tv, struct timezone *tz)
 
 	return 0;
 }
-#endif // __GCC__
+#endif // __GNUC__
 
 void
 timeradd(struct timeval *a, struct timeval *b, struct timeval *result)
@@ -122,7 +122,7 @@ timersub(struct timeval *a, struct timeval *b, struct timeval *result)
 	}
 }
 
-#ifndef __GCC__
+#ifndef __GNUC__
 /*
  * getopt() for Win32 -- public domain ripped from codeproject.com
  */
@@ -195,7 +195,7 @@ int getopt(int argc, TCHAR *argv[], TCHAR *optstring)
 
 	return c;
 }
-#endif // __GCC__
+#endif // __GNUC__
 
 /*
  * If ptw32 is being linked in as a static library, make sure that

@@ -31,14 +31,14 @@ extern void timeradd(struct timeval *a, struct timeval *b,
 extern void timersub(struct timeval *a, struct timeval *b,
 		     struct timeval *result);
 
-#ifndef __GCC__
+#ifndef __GNUC__
 struct timezone;
 extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 extern TCHAR *optarg;
 extern int optind;
 
 extern int getopt(int argc, TCHAR *argv[], TCHAR *optstring);
-#endif // __GCC__
+#endif // __GNUC__
 
 extern int count_processors(void);
 

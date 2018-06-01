@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <getopt.h>
 
 #include <openssl/evp.h>
 #include <openssl/bn.h>
