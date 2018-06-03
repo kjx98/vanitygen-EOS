@@ -137,6 +137,9 @@ main(int argc, char **argv)
 	while ((opt = getopt(argc, argv,
 			     "vqrik1zY:eE:p:P:d:w:t:g:b:VSh?f:o:s:D:Z:a:")) != -1) {
 		switch (opt) {
+		case 'c':
+			compressed = 1;
+			break;
 		case 'r':
 			regex = 1;
 			break;

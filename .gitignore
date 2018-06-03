@@ -4,6 +4,7 @@
 *.layout
 *.oclbin
 *.dbg
+*.exe
 vanitygen
 oclvanitygen
 oclvanityminer

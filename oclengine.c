@@ -43,6 +43,45 @@
 #include "pattern.h"
 #include "util.h"
 
+// Unfortunately we need this!
+#if OPENSSL_VERSION_NUMBER >= 0x0010100000
+#define PPNT_ARROW_X ppnt->X
+#define PPNT_ARROW_Y ppnt->Y
+#define PPNT_ARROW_Z ppnt->Z
+#define PPS_ARROW_X pps->X
+#define PPS_ARROW_Y pps->Y
+#define PPS_ARROW_Z pps->Z
+#define PPT_ARROW_X ppt->X
+#define PPT_ARROW_Y ppt->Y
+#define PPR_ARROW_X ppr->X
+#define PPR_ARROW_Y ppr->Y
+#define PPC_ARROW_X ppc->X
+#define PPC_ARROW_Y ppc->Y
+
+struct bignum_st {
+    BN_ULONG *d;                /* Pointer to an array of 'BN_BITS2' bit
+                                 * chunks. */
+    int top;                    /* Index of last used d +1. */
+    /* The next are internal book keeping for bn_expand. */
+    int dmax;                   /* Size of the d array. */
+    int neg;                    /* one if the number is negative */
+    int flags;
+};
+#else
+#define PPNT_ARROW_X &ppnt->X
+#define PPNT_ARROW_Y &ppnt->Y
+#define PPNT_ARROW_Z &ppnt->Z
+#define PPS_ARROW_X &pps->X
+#define PPS_ARROW_Y &pps->Y
+#define PPS_ARROW_Z &pps->Z
+#define PPT_ARROW_X &ppt->X
+#define PPT_ARROW_Y &ppt->Y
+#define PPR_ARROW_X &ppr->X
+#define PPR_ARROW_Y &ppr->Y
+#define PPC_ARROW_X &ppc->X
+#define PPC_ARROW_Y &ppc->Y
+#endif
+
 
 #define MAX_SLOT 2
 #define MAX_ARG 6
@@ -188,12 +227,10 @@ vg_ocl_platform_getstr(cl_platform_id pid, cl_platform_info param)
 	cl_int ret;
 	size_t size_ret;
 	ret = clGetPlatformInfo(pid, param,
-				sizeof(platform_str), platform_str,
-				&size_ret);
+				sizeof(platform_str), platform_str, &size_ret);
 	if (ret != CL_SUCCESS) {
 		snprintf(platform_str, sizeof(platform_str),
-			 "clGetPlatformInfo(%d): %s",
-			 param, vg_ocl_strerror(ret));
+			 "clGetPlatformInfo(%d): %s", param, vg_ocl_strerror(ret));
 	}
 	return platform_str;
 }
@@ -220,8 +257,7 @@ vg_ocl_device_gettype(cl_device_id did)
 	size_t size_ret;
 	ret = clGetDeviceInfo(did, CL_DEVICE_TYPE, sizeof(val), &val, &size_ret);
 	if (ret != CL_SUCCESS) {
-		fprintf(stderr, "clGetDeviceInfo(CL_DEVICE_TYPE): %s",
-			vg_ocl_strerror(ret));
+		fprintf(stderr, "clGetDeviceInfo(CL_DEVICE_TYPE): %s", vg_ocl_strerror(ret));
 	}
 	return val;
 }
@@ -270,7 +306,7 @@ static cl_uint
 vg_ocl_device_getuint(cl_device_id did, cl_device_info param)
 {
 	cl_int ret;
-        cl_uint val;
+    cl_uint val;
 	size_t size_ret;
 	ret = clGetDeviceInfo(did, param, sizeof(val), &val, &size_ret);
 	if (ret != CL_SUCCESS) {
@@ -283,13 +319,10 @@ void
 vg_ocl_dump_info(vg_ocl_context_t *vocp)
 {
 	cl_device_id did;
-	if (vocp->base.vxc_vc && (vocp->base.vxc_vc->vc_verbose < 1))
-		return;
-	if (vocp->voc_dump_done)
-		return;
+	if (vocp->base.vxc_vc && (vocp->base.vxc_vc->vc_verbose < 1)) return;
+	if (vocp->voc_dump_done) return;
 	did = vocp->voc_ocldid;
-	fprintf(stderr, "Device: %s\n",
-	       vg_ocl_device_getstr(did, CL_DEVICE_NAME));
+	fprintf(stderr, "Device: %s\n", vg_ocl_device_getstr(did, CL_DEVICE_NAME));
 	fprintf(stderr, "Vendor: %s (%04x)\n",
 	       vg_ocl_device_getstr(did, CL_DEVICE_VENDOR),
 	       vg_ocl_device_getuint(did, CL_DEVICE_VENDOR_ID));
@@ -422,8 +455,7 @@ vg_ocl_get_quirks(vg_ocl_context_t *vocp)
 			quirks |= VG_OCL_EXPENSIVE_BRANCHES;
 			quirks |= VG_OCL_DEEP_VLIW;
 			dvn = vg_ocl_device_getstr(vocp->voc_ocldid, CL_DEVICE_EXTENSIONS);
-			if (dvn && strstr(dvn, "cl_amd_media_ops"))
-				quirks |= VG_OCL_AMD_BFI_INT;
+			if (dvn && strstr(dvn, "cl_amd_media_ops")) quirks |= VG_OCL_AMD_BFI_INT;
 
 			dvn = vg_ocl_device_getstr(vocp->voc_ocldid,
 						   CL_DEVICE_NAME);
@@ -468,8 +500,7 @@ vg_ocl_create_kernel(vg_ocl_context_t *vocp, int knum, const char *func)
 
 static void
 vg_ocl_hash_program(vg_ocl_context_t *vocp, const char *opts,
-		    const char *program, size_t size,
-		    unsigned char *hash_out)
+		    const char *program, size_t size, unsigned char *hash_out)
 {
 	EVP_MD_CTX *mdctx;
 	cl_platform_id pid;
@@ -536,8 +567,7 @@ vg_ocl_amd_patch_inner(unsigned char *binary, size_t size)
 
 	off = ehp->e_shoff + (ehp->e_shstrndx * ehp->e_shentsize);
 	nshp = (vg_elf32_shdr_t *) (binary + off);
-	if ((off + sizeof(*nshp)) > size)
-		return 0;
+	if ((off + sizeof(*nshp)) > size) return 0;
 
 	shp = (vg_elf32_shdr_t *) (binary + ehp->e_shoff);
 	n = 0;
@@ -546,11 +576,9 @@ vg_ocl_amd_patch_inner(unsigned char *binary, size_t size)
 		off = nshp->sh_offset + shp[i].sh_name;
 		if (((off + 6) >= size) || memcmp(binary + off, ".text", 6)) continue;
 		n++;
-		if (n == 2)
-			txt2idx = i;
+		if (n == 2) txt2idx = i;
 	}
-	if (n != 2)
-		return 0;
+	if (n != 2) return 0;
 
 	off = shp[txt2idx].sh_offset;
 	instr = (uint32_t *) (binary + off);
@@ -731,8 +759,7 @@ vg_ocl_load_program(vg_context_t *vcp, vg_ocl_context_t *vocp,
 	}
 
 	if (fromsource && !(vocp->voc_quirks & VG_OCL_NO_BINARIES)) {
-		ret = clGetProgramInfo(prog, CL_PROGRAM_BINARY_SIZES,
-				       sizeof(szr), &szr, &sz);
+		ret = clGetProgramInfo(prog, CL_PROGRAM_BINARY_SIZES, sizeof(szr), &szr, &sz);
 		if (ret != CL_SUCCESS) {
 			vg_ocl_error(vocp, ret, "WARNING: clGetProgramInfo(BINARY_SIZES)");
 			goto out;
@@ -750,8 +777,7 @@ vg_ocl_load_program(vg_context_t *vcp, vg_ocl_context_t *vocp,
 			goto out;
 		}
 
-		ret = clGetProgramInfo(prog, CL_PROGRAM_BINARIES,
-				       sizeof(buf), &buf, &sz);
+		ret = clGetProgramInfo(prog, CL_PROGRAM_BINARIES, sizeof(buf), &buf, &sz);
 		if (ret != CL_SUCCESS) {
 			vg_ocl_error(vocp, ret, "WARNING: clGetProgramInfo(BINARIES)");
 			free(buf);
@@ -805,17 +831,14 @@ out:
 }
 
 static void CL_CALLBACK
-vg_ocl_context_callback(const char *errinfo,
-			const void *private_info,
-			size_t cb,
-			void *user_data)
+vg_ocl_context_callback(const char *errinfo, const void *private_info,
+			size_t cb, void *user_data)
 {
 	fprintf(stderr, "vg_ocl_context_callback error: %s\n", errinfo);
 }
 
 static int
-vg_ocl_init(vg_context_t *vcp, vg_ocl_context_t *vocp, cl_device_id did,
-	    int safe_mode)
+vg_ocl_init(vg_context_t *vcp, vg_ocl_context_t *vocp, cl_device_id did, int safe_mode)
 {
 	cl_int ret;
 	char optbuf[128];
@@ -1007,9 +1030,8 @@ vg_ocl_map_arg_buffer(vg_ocl_context_t *vocp, int slot, int arg, int rw)
 	assert((slot >= 0) && (slot < MAX_SLOT));
 
 	buf = clEnqueueMapBuffer(vocp->voc_oclcmdq, vocp->voc_args[slot][arg],
-				 CL_TRUE,
-				 (rw == 2) ? (CL_MAP_READ|CL_MAP_WRITE)
-				           : (rw ? CL_MAP_WRITE : CL_MAP_READ),
+				 CL_TRUE, (rw == 2) ? (CL_MAP_READ|CL_MAP_WRITE)
+                            : (rw ? CL_MAP_WRITE : CL_MAP_READ),
 				 0, vocp->voc_arg_size[slot][arg], 0, NULL, NULL, &ret);
 	if (!buf) {
 		fprintf(stderr, "clEnqueueMapBuffer(%d): ", arg);
@@ -1198,9 +1220,13 @@ vg_ocl_kernel_wait(vg_ocl_context_t *vocp, int slot)
 static INLINE void
 vg_ocl_get_bignum_raw(BIGNUM *bn, const unsigned char *buf)
 {
+#if OPENSSL_VERSION_NUMBER >= 0x0010100000
+	BN_bin2bn(buf, 32, bn);
+#else
 	bn_expand(bn, 256);
 	memcpy(bn->d, buf, 32);
 	bn->top = (32 / sizeof(BN_ULONG));
+#endif
 }
 
 static INLINE void
@@ -1240,9 +1266,15 @@ vg_ocl_get_bignum_tpa(BIGNUM *bn, const unsigned char *buf, int cell)
 
 struct ec_point_st {
 	const EC_METHOD *meth;
+#if OPENSSL_VERSION_NUMBER >= 0x0010100000
+	BIGNUM *X;
+	BIGNUM *Y;
+	BIGNUM *Z;
+#else
 	BIGNUM X;
 	BIGNUM Y;
 	BIGNUM Z;
+#endif
 	int Z_is_one;
 };
 
@@ -1250,11 +1282,11 @@ static INLINE void
 vg_ocl_get_point(EC_POINT *ppnt, const unsigned char *buf)
 {
 	static const unsigned char mont_one[] = { 0x01,0x00,0x00,0x03,0xd1 };
-	vg_ocl_get_bignum_raw(&ppnt->X, buf);
-	vg_ocl_get_bignum_raw(&ppnt->Y, buf + 32);
+	vg_ocl_get_bignum_raw(PPNT_ARROW_X, buf);
+	vg_ocl_get_bignum_raw(PPNT_ARROW_Y, buf + 32);
 	if (!ppnt->Z_is_one) {
 		ppnt->Z_is_one = 1;
-		BN_bin2bn(mont_one, sizeof(mont_one), &ppnt->Z);
+		BN_bin2bn(mont_one, sizeof(mont_one), PPNT_ARROW_Z);
 	}
 }
 
@@ -1262,8 +1294,8 @@ static INLINE void
 vg_ocl_put_point(unsigned char *buf, const EC_POINT *ppnt)
 {
 	assert(ppnt->Z_is_one);
-	vg_ocl_put_bignum_raw(buf, &ppnt->X);
-	vg_ocl_put_bignum_raw(buf + 32, &ppnt->Y);
+	vg_ocl_put_bignum_raw(buf, PPNT_ARROW_X);
+	vg_ocl_put_bignum_raw(buf + 32, PPNT_ARROW_Y);
 }
 
 static void
@@ -1556,7 +1588,7 @@ vg_ocl_verify_temporary(vg_ocl_context_t *vocp, int slot, int z_inverted)
 	if (z_inverted) {
 		bnzc = bnez;
 	} else {
-		bnzc = &pps->Z;
+		bnzc = PPS_ARROW_Z;
 	}
 
 	z_heap = (unsigned char *)
@@ -1586,12 +1618,12 @@ vg_ocl_verify_temporary(vg_ocl_context_t *vocp, int slot, int z_inverted)
 			vg_ocl_get_point_tpa(ppt, point_tmp, bx + x);
 			vg_ocl_get_bignum_tpa(bnz, z_heap, bx + x);
 			if (z_inverted) {
-				BN_mod_inverse(bnez, &pps->Z, bnm, bnctx);
+				BN_mod_inverse(bnez, PPS_ARROW_Z, bnm, bnctx);
 				BN_to_montgomery(bnez, bnez, bnmont, bnctx);
 				BN_to_montgomery(bnez, bnez, bnmont, bnctx);
 			}
-			if (BN_cmp(&ppt->X, &pps->X) ||
-			    BN_cmp(&ppt->Y, &pps->Y) ||
+			if (BN_cmp(PPT_ARROW_X, PPS_ARROW_X) ||
+			    BN_cmp(PPT_ARROW_Y, PPS_ARROW_Y) ||
 			    BN_cmp(bnz, bnzc)) {
 				if (!mismatches) {
 					fprintf(stderr, "Base privkey: ");
@@ -1604,27 +1636,27 @@ vg_ocl_verify_temporary(vg_ocl_context_t *vocp, int slot, int z_inverted)
 				if (!mm_r) {
 					mm_r = 1;
 					fprintf(stderr, "Row X   : ");
-					fdumpbn(stderr, &ppr->X);
+					fdumpbn(stderr, PPR_ARROW_X);
 					fprintf(stderr, "Row Y   : ");
-					fdumpbn(stderr, &ppr->Y);
+					fdumpbn(stderr, PPR_ARROW_Y);
 				}
 
 				fprintf(stderr, "Column X: ");
-				fdumpbn(stderr, &ppc->X);
+				fdumpbn(stderr, PPC_ARROW_X);
 				fprintf(stderr, "Column Y: ");
-				fdumpbn(stderr, &ppc->Y);
+				fdumpbn(stderr, PPC_ARROW_Y);
 
-				if (BN_cmp(&ppt->X, &pps->X)) {
+				if (BN_cmp(PPT_ARROW_X, PPS_ARROW_X)) {
 					fprintf(stderr, "Expect X: ");
-					fdumpbn(stderr, &pps->X);
+					fdumpbn(stderr, PPS_ARROW_X);
 					fprintf(stderr, "Device X: ");
-					fdumpbn(stderr, &ppt->X);
+					fdumpbn(stderr, PPT_ARROW_X);
 				}
-				if (BN_cmp(&ppt->Y, &pps->Y)) {
+				if (BN_cmp(PPT_ARROW_Y, PPS_ARROW_Y)) {
 					fprintf(stderr, "Expect Y: ");
-					fdumpbn(stderr, &pps->Y);
+					fdumpbn(stderr, PPS_ARROW_Y);
 					fprintf(stderr, "Device Y: ");
-					fdumpbn(stderr, &ppt->Y);
+					fdumpbn(stderr, PPT_ARROW_Y);
 				}
 				if (BN_cmp(bnz, bnzc)) {
 					fprintf(stderr, "Expect Z: ");
@@ -1887,12 +1919,11 @@ l_rekey:
 		EC_POINT_mul(pgroup, origin, pkbn, NULL, NULL, vxcp->vxc_bnctx);
 		EC_KEY_set_public_key(pkey, origin);
 	}
-
 	/* Determine rekey interval */
 	EC_GROUP_get_order(pgroup, vxcp->vxc_bntmp, vxcp->vxc_bnctx);
 	BN_sub(vxcp->vxc_bntmp2, vxcp->vxc_bntmp, EC_KEY_get0_private_key(pkey));
 	rekey_at = BN_get_word(vxcp->vxc_bntmp2);
-	if ((rekey_at == BN_MASK2) || (rekey_at > rekey_max)) rekey_at = rekey_max;
+	if ((rekey_at == 0xffffffffL) || (rekey_at > rekey_max)) rekey_at = rekey_max;
 	assert(rekey_at > 0);
 
 	EC_POINT_copy(ppbase[0], EC_KEY_get0_public_key(pkey));

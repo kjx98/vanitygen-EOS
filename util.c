@@ -295,8 +295,7 @@ vg_encode_privkey(const EC_KEY *pkey, int addrtype, char *result)
 	eckey_buf[0] = addrtype;
 	nbytes = BN_num_bytes(bn);
 	assert(nbytes <= 32);
-	if (nbytes < 32) memset(eckey_buf + 1, 0, 32 - nbytes);
-	BN_bn2bin(bn, &eckey_buf[33 - nbytes]);
+	BN_bn2binpad(bn, &eckey_buf[1], 32);
 
 	vg_b58_encode_check(eckey_buf, 33, result);
 }
@@ -313,11 +312,9 @@ vg_encode_privkey_compressed(const EC_KEY *pkey, int addrtype, char *result)
 	eckey_buf[0] = addrtype;
 	nbytes = BN_num_bytes(bn);
 	assert(nbytes <= 32);
-	if (nbytes < 32) memset(eckey_buf + 1, 0, 32 - nbytes);
-	BN_bn2bin(bn, &eckey_buf[33 - nbytes]);
-	eckey_buf[33] = 1;
+	BN_bn2binpad(bn, &eckey_buf[1], 32);
 
-	vg_b58_encode_check(eckey_buf, 34, result);
+	vg_b58_encode_check(eckey_buf, 33, result);
 }
 
 int
@@ -330,8 +327,7 @@ vg_set_privkey(const BIGNUM *bnpriv, EC_KEY *pkey)
 	pgroup = EC_KEY_get0_group(pkey);
 	ppnt = EC_POINT_new(pgroup);
 
-	res = (ppnt &&
-	       EC_KEY_set_private_key(pkey, bnpriv) &&
+	res = (ppnt && EC_KEY_set_private_key(pkey, bnpriv) &&
 	       EC_POINT_mul(pgroup, ppnt, bnpriv, NULL, NULL, NULL) &&
 	       EC_KEY_set_public_key(pkey, ppnt));
 

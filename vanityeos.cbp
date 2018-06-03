@@ -33,7 +33,6 @@
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-std=gnu99" />
-			<Add option="-D__USE_XOPEN" />
 		</Compiler>
 		<Linker>
 			<Add option="-O3" />

@@ -41,6 +41,18 @@ char ticker[10];
 
 const char *version = VANITYGEN_VERSION;
 
+// Unfortunately we need this!
+#if OPENSSL_VERSION_NUMBER >= 0x0010100000
+struct bignum_st {
+    BN_ULONG *d;                /* Pointer to an array of 'BN_BITS2' bit
+                                 * chunks. */
+    int top;                    /* Index of last used d +1. */
+    /* The next are internal book keeping for bn_expand. */
+    int dmax;                   /* Size of the d array. */
+    int neg;                    /* one if the number is negative */
+    int flags;
+};
+#endif // OPENSSL_VERSION_NUMBER
 
 /*
  * Address search thread main loop
@@ -117,30 +129,22 @@ vg_thread_loop(void *arg)
 			vg_exec_context_upgrade_lock(vxcp);
 			/* Generate a new random private key */
 			EC_KEY_generate_key(pkey);
-#ifdef  NOT_WORK_NOW
 			if (vcp->vc_privkey_prefix_length > 0) {
-                unsigned char   keybuf[64];
-                size_t  blen;
-				BIGNUM *pkbn;
-                blen = BN_bn2bin(EC_KEY_get0_private_key(pkey), keybuf);
-                if (blen > vcp->vc_privkey_prefix_length) {
-                    memcpy(keybuf + 32 - vcp->vc_privkey_prefix_length, vcp->vc_privkey_prefix, vcp->vc_privkey_prefix_length);
-                    BN_bin2bn(keybuf, blen, pkbn);
-                    EC_KEY_set_private_key(pkey, pkbn);
-                    EC_POINT *origin = EC_POINT_new(pgroup);
-                    EC_POINT_mul(pgroup, origin, pkbn, NULL, NULL, vxcp->vxc_bnctx);
-                    EC_KEY_set_public_key(pkey, origin);
-                }
+				BIGNUM *pkbn = BN_dup(EC_KEY_get0_private_key(pkey));
+				memcpy((char *)pkbn->d + 32 - vcp->vc_privkey_prefix_length, vcp->vc_privkey_prefix, vcp->vc_privkey_prefix_length);
+				EC_KEY_set_private_key(pkey, pkbn);
 
+				EC_POINT *origin = EC_POINT_new(pgroup);
+				EC_POINT_mul(pgroup, origin, pkbn, NULL, NULL, vxcp->vxc_bnctx);
+				EC_KEY_set_public_key(pkey, origin);
 			}
-#endif // NOT_WORK_NOW
 			npoints = 0;
 
 			/* Determine rekey interval */
 			EC_GROUP_get_order(pgroup, vxcp->vxc_bntmp, vxcp->vxc_bnctx);
 			BN_sub(vxcp->vxc_bntmp2, vxcp->vxc_bntmp, EC_KEY_get0_private_key(pkey));
 			rekey_at = BN_get_word(vxcp->vxc_bntmp2);
-			if (/*(rekey_at == BN_MASK2) ||*/ (rekey_at > rekey_max))
+			if ((rekey_at == 0xffffffffL) || (rekey_at > rekey_max))
 				rekey_at = rekey_max;
 			assert(rekey_at > 0);
 
@@ -370,7 +374,7 @@ main(int argc, char **argv)
 	int i;
 
 #ifndef	NO_PCRE
-	while ((opt = getopt(argc, argv, "vqnrik1ezE:P:Y:t:h?f:o:s:Z:a:")) != -1)
+	while ((opt = getopt(argc, argv, "cvqnrik1ezE:P:Y:t:h?f:o:s:Z:a:")) != -1)
 #else
 	while ((opt = getopt(argc, argv, "vqnik1ezE:P:Y:t:h?f:o:s:Z:a:")) != -1)
 #endif // NO_PCRE
