@@ -254,7 +254,9 @@ vg_exec_context_calc_address(vg_exec_context_t *vxcp)
 	len = EC_POINT_point2oct(pgroup, pubkey,
 				 vxcp->vxc_vc->vc_compressed ? POINT_CONVERSION_COMPRESSED : POINT_CONVERSION_UNCOMPRESSED,
 				 eckey_buf, sizeof(eckey_buf), vxcp->vxc_bnctx);
-    if (vxcp->vxc_vc->vc_compressed) memcpy(vxcp->vxc_binres, eckey_buf, 33); {
+    if (vxcp->vxc_vc->vc_compressed)
+        memcpy(vxcp->vxc_binres, eckey_buf, 33);
+    else {
         memcpy(vxcp->vxc_binres+1, eckey_buf+1, 32);
         if (eckey_buf[len-1] & 1) vxcp->vxc_binres[0] = 3; else vxcp->vxc_binres[0] = 2;
     }
