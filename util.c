@@ -398,15 +398,12 @@ static const vg_protkey_parameters_t protkey_parameters[] = {
 };
 
 static int
-vg_protect_crypt(int parameter_group,
-		 unsigned char *data_in, int data_in_len,
-		 unsigned char *data_out,
-		 const char *pass, int enc)
+vg_protect_crypt(int parameter_group, unsigned char *data_in, int data_in_len,
+		 unsigned char *data_out, const char *pass, int enc)
 {
 	EVP_CIPHER_CTX *ctx = NULL;
 	unsigned char *salt;
-	unsigned char keymaterial[EVP_MAX_KEY_LENGTH + EVP_MAX_IV_LENGTH +
-				  EVP_MAX_MD_SIZE];
+	unsigned char keymaterial[EVP_MAX_KEY_LENGTH + EVP_MAX_IV_LENGTH + EVP_MAX_MD_SIZE];
 	unsigned char hmac[EVP_MAX_MD_SIZE];
 	int hmac_len = 0, hmac_keylen = 0;
 	int salt_len;
@@ -452,15 +449,13 @@ vg_protect_crypt(int parameter_group,
 		salt_len = 4;
 		hmac_len = 8;
 		hmac_keylen = 16;
-		ciphertext_len = ((plaintext_len + block_size - 1) /
-				  block_size) * block_size;
+		ciphertext_len = ((plaintext_len + block_size - 1) / block_size) * block_size;
 		pkcs7_padding = 0;
 		hmac_digest = EVP_sha256();
 	} else {
 		/* PKCS-compliant encoding */
 		salt_len = 8;
-		ciphertext_len = ((plaintext_len + block_size) /
-				  block_size) * block_size;
+		ciphertext_len = ((plaintext_len + block_size) / block_size) * block_size;
 		hmac_digest = NULL;
 	}
 
@@ -486,8 +481,7 @@ vg_protect_crypt(int parameter_group,
 			  salt, salt_len, params->iterations, pbkdf_digest,
 			  key_len + iv_len + hmac_keylen, keymaterial);
 
-	if (!EVP_CipherInit(ctx, cipher, keymaterial,
-			    keymaterial + key_len, enc)) {
+	if (!EVP_CipherInit(ctx, cipher, keymaterial, keymaterial + key_len, enc)) {
 		fprintf(stderr, "ERROR: could not configure cipher\n");
 		goto out;
 	}
@@ -553,10 +547,8 @@ out:
 }
 
 int
-vg_protect_encode_privkey(char *out,
-			  const EC_KEY *pkey, int keytype,
-			  int parameter_group,
-			  const char *pass)
+vg_protect_encode_privkey(char *out, const EC_KEY *pkey, int keytype,
+			  int parameter_group, const char *pass)
 {
 	unsigned char ecpriv[64];
 	unsigned char ecenc[128];
@@ -624,8 +616,7 @@ vg_protect_decode_privkey(EC_KEY *pkey, int *keytype,
  * Besides the bitcoin-adapted formats, we also support PKCS#8.
  */
 int
-vg_pkcs8_encode_privkey(char *out, int outlen,
-			const EC_KEY *pkey, const char *pass)
+vg_pkcs8_encode_privkey(char *out, int outlen, const EC_KEY *pkey, const char *pass)
 {
 	EC_KEY *pkey_copy = NULL;
 	EVP_PKEY *evp_key = NULL;

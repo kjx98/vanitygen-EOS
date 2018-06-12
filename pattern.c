@@ -40,15 +40,13 @@
 #include "avl.h"
 #include "base58.h"
 
-static int
-vg_prefix_addr_sort(vg_context_t *vcp, void *buf);
+static int vg_prefix_addr_sort(vg_context_t *vcp, void *buf);
 
 /*
  * Common code for execution helper
  */
 
-EC_KEY *
-vg_exec_context_new_key(void)
+EC_KEY * vg_exec_context_new_key(void)
 {
 	return EC_KEY_new_by_curve_name(NID_secp256k1);
 }
@@ -62,8 +60,7 @@ static pthread_cond_t vg_thread_rdcond = PTHREAD_COND_INITIALIZER;
 static pthread_cond_t vg_thread_wrcond = PTHREAD_COND_INITIALIZER;
 static pthread_cond_t vg_thread_upcond = PTHREAD_COND_INITIALIZER;
 
-static void
-__vg_exec_context_yield(vg_exec_context_t *vxcp)
+static void __vg_exec_context_yield(vg_exec_context_t *vxcp)
 {
 	vxcp->vxc_lockmode = 0;
 	while (vxcp->vxc_vc->vc_thread_excl) {
@@ -79,8 +76,7 @@ __vg_exec_context_yield(vg_exec_context_t *vxcp)
 	vxcp->vxc_lockmode = 1;
 }
 
-int
-vg_exec_context_upgrade_lock(vg_exec_context_t *vxcp)
+int vg_exec_context_upgrade_lock(vg_exec_context_t *vxcp)
 {
 	vg_exec_context_t *tp;
 	vg_context_t *vcp;
@@ -130,8 +126,7 @@ vg_exec_context_upgrade_lock(vg_exec_context_t *vxcp)
 	return 1;
 }
 
-void
-vg_exec_context_downgrade_lock(vg_exec_context_t *vxcp)
+void vg_exec_context_downgrade_lock(vg_exec_context_t *vxcp)
 {
 	pthread_mutex_lock(&vg_thread_lock);
 	assert(vxcp->vxc_lockmode == 2);
@@ -147,8 +142,7 @@ vg_exec_context_downgrade_lock(vg_exec_context_t *vxcp)
 	pthread_mutex_unlock(&vg_thread_lock);
 }
 
-int
-vg_exec_context_init(vg_context_t *vcp, vg_exec_context_t *vxcp)
+int vg_exec_context_init(vg_context_t *vcp, vg_exec_context_t *vxcp)
 {
 	pthread_mutex_lock(&vg_thread_lock);
 
@@ -179,8 +173,7 @@ vg_exec_context_init(vg_context_t *vcp, vg_exec_context_t *vxcp)
 	return 1;
 }
 
-void
-vg_exec_context_del(vg_exec_context_t *vxcp)
+void vg_exec_context_del(vg_exec_context_t *vxcp)
 {
 	vg_exec_context_t *tp, **pprev;
 
@@ -208,8 +201,7 @@ vg_exec_context_del(vg_exec_context_t *vxcp)
 	pthread_mutex_unlock(&vg_thread_lock);
 }
 
-void
-vg_exec_context_yield(vg_exec_context_t *vxcp)
+void vg_exec_context_yield(vg_exec_context_t *vxcp)
 {
 	if (vxcp->vxc_lockmode == 2) vg_exec_context_downgrade_lock(vxcp);
 
@@ -223,8 +215,7 @@ vg_exec_context_yield(vg_exec_context_t *vxcp)
 	assert(vxcp->vxc_lockmode == 1);
 }
 
-void
-vg_exec_context_consolidate_key(vg_exec_context_t *vxcp)
+void vg_exec_context_consolidate_key(vg_exec_context_t *vxcp)
 {
 	if (vxcp->vxc_delta) {
 		BN_clear(vxcp->vxc_bntmp);
@@ -236,8 +227,7 @@ vg_exec_context_consolidate_key(vg_exec_context_t *vxcp)
 	}
 }
 
-void
-vg_exec_context_calc_address(vg_exec_context_t *vxcp)
+void vg_exec_context_calc_address(vg_exec_context_t *vxcp)
 {
 	EC_POINT *pubkey;
 	const EC_GROUP *pgroup;
@@ -283,8 +273,7 @@ typedef struct _timing_info_s {
 
 static pthread_mutex_t timing_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int
-vg_output_timing(vg_context_t *vcp, int cycle, struct timeval *last)
+int vg_output_timing(vg_context_t *vcp, int cycle, struct timeval *last)
 {
 	pthread_t me;
 	struct timeval tvnow, tv;
@@ -359,8 +348,7 @@ vg_output_timing(vg_context_t *vcp, int cycle, struct timeval *last)
 	return myrate;
 }
 
-void
-vg_context_thread_exit(vg_context_t *vcp)
+void vg_context_thread_exit(vg_context_t *vcp)
 {
 	timing_info_t *tip, **ptip;
 	pthread_t me;
@@ -379,8 +367,7 @@ vg_context_thread_exit(vg_context_t *vcp)
 
 }
 
-static void
-vg_timing_info_free(vg_context_t *vcp)
+static void vg_timing_info_free(vg_context_t *vcp)
 {
 	timing_info_t *tp;
 	while (vcp->vc_timing_head != NULL) {
@@ -390,8 +377,7 @@ vg_timing_info_free(vg_context_t *vcp)
 	}
 }
 
-void
-vg_output_timing_console(vg_context_t *vcp, double count,
+void vg_output_timing_console(vg_context_t *vcp, double count,
 			 unsigned long long rate, unsigned long long total)
 {
 	double prob, time, targ;
@@ -487,8 +473,7 @@ vg_output_timing_console(vg_context_t *vcp, double count,
 	fflush(stdout);
 }
 
-void
-vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
+void vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 {
 	unsigned char key_buf[512], *pend;
 	char addr_buf[64];
@@ -600,36 +585,31 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 }
 
 
-void
-vg_context_free(vg_context_t *vcp)
+void vg_context_free(vg_context_t *vcp)
 {
 	vg_timing_info_free(vcp);
 	vcp->vc_free(vcp);
 }
 
-int
-vg_context_add_patterns(vg_context_t *vcp, const char ** const patterns, int npatterns)
+int vg_context_add_patterns(vg_context_t *vcp, const char ** const patterns, int npatterns)
 {
 	vcp->vc_pattern_generation++;
 	return vcp->vc_add_patterns(vcp, patterns, npatterns);
 }
 
-void
-vg_context_clear_all_patterns(vg_context_t *vcp)
+void vg_context_clear_all_patterns(vg_context_t *vcp)
 {
 	vcp->vc_clear_all_patterns(vcp);
 	vcp->vc_pattern_generation++;
 }
 
-int
-vg_context_addr_sort(vg_context_t *vcp, void *buf)
+int vg_context_addr_sort(vg_context_t *vcp, void *buf)
 {
 	if (!vcp->vc_addr_sort) return 0;
 	return vcp->vc_addr_sort(vcp, buf);
 }
 
-int
-vg_context_start_threads(vg_context_t *vcp)
+int vg_context_start_threads(vg_context_t *vcp)
 {
 	vg_exec_context_t *vxcp;
 	int res;
@@ -647,16 +627,14 @@ vg_context_start_threads(vg_context_t *vcp)
 	return 0;
 }
 
-void
-vg_context_stop_threads(vg_context_t *vcp)
+void vg_context_stop_threads(vg_context_t *vcp)
 {
 	vcp->vc_halt = 1;
 	vg_context_wait_for_completion(vcp);
 	vcp->vc_halt = 0;
 }
 
-void
-vg_context_wait_for_completion(vg_context_t *vcp)
+void vg_context_wait_for_completion(vg_context_t *vcp)
 {
 	vg_exec_context_t *vxcp;
 
@@ -780,8 +758,7 @@ out:
 	return ret;
 }
 
-static void
-free_ranges(BIGNUM **ranges)
+static void free_ranges(BIGNUM **ranges)
 {
 	BN_free(ranges[0]);
 	BN_free(ranges[1]);
@@ -809,8 +786,7 @@ typedef struct _vg_prefix_s {
 	BIGNUM			*vp_high;
 } vg_prefix_t;
 
-static void
-vg_prefix_free(vg_prefix_t *vp)
+static void vg_prefix_free(vg_prefix_t *vp)
 {
 	if (vp->vp_low)
 		BN_free(vp->vp_low);
@@ -819,8 +795,7 @@ vg_prefix_free(vg_prefix_t *vp)
 	free(vp);
 }
 
-static vg_prefix_t *
-vg_prefix_avl_search(avl_root_t *rootp, BIGNUM *targ)
+static vg_prefix_t * vg_prefix_avl_search(avl_root_t *rootp, BIGNUM *targ)
 {
 	vg_prefix_t *vp;
 	avl_item_t *itemp = rootp->ar_root;
@@ -838,8 +813,7 @@ vg_prefix_avl_search(avl_root_t *rootp, BIGNUM *targ)
 	return NULL;
 }
 
-static vg_prefix_t *
-vg_prefix_avl_insert(avl_root_t *rootp, vg_prefix_t *vpnew)
+static vg_prefix_t *vg_prefix_avl_insert(avl_root_t *rootp, vg_prefix_t *vpnew)
 {
 	vg_prefix_t *vp;
 	avl_item_t *itemp = NULL;
@@ -862,8 +836,7 @@ vg_prefix_avl_insert(avl_root_t *rootp, vg_prefix_t *vpnew)
 	return NULL;
 }
 
-static vg_prefix_t *
-vg_prefix_first(avl_root_t *rootp)
+static vg_prefix_t *vg_prefix_first(avl_root_t *rootp)
 {
 	avl_item_t *itemp;
 	itemp = avl_first(rootp);
@@ -871,8 +844,7 @@ vg_prefix_first(avl_root_t *rootp)
 	return NULL;
 }
 
-static vg_prefix_t *
-vg_prefix_next(vg_prefix_t *vp)
+static vg_prefix_t *vg_prefix_next(vg_prefix_t *vp)
 {
 	avl_item_t *itemp = &vp->vp_item;
 	itemp = avl_next(itemp);
@@ -905,8 +877,7 @@ vg_prefix_add(avl_root_t *rootp, const char *pattern, BIGNUM *low, BIGNUM *high)
 	return vp;
 }
 
-static void
-vg_prefix_delete(avl_root_t *rootp, vg_prefix_t *vp)
+static void vg_prefix_delete(avl_root_t *rootp, vg_prefix_t *vp)
 {
 	vg_prefix_t *sibp, *delp;
 
@@ -953,8 +924,7 @@ vg_prefix_add_ranges(avl_root_t *rootp, const char *pattern, BIGNUM **ranges,
 	return vp;
 }
 
-static void
-vg_prefix_range_sum(vg_prefix_t *vp, BIGNUM *result, BIGNUM *tmp1)
+static void vg_prefix_range_sum(vg_prefix_t *vp, BIGNUM *result, BIGNUM *tmp1)
 {
 	vg_prefix_t *startp;
 
@@ -986,8 +956,7 @@ static const unsigned char b58_case_map[256] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
 };
 
-static int
-prefix_case_iter_init(prefix_case_iter_t *cip, const char *pfx)
+static int prefix_case_iter_init(prefix_case_iter_t *cip, const char *pfx)
 {
 	int i;
 
@@ -1014,8 +983,7 @@ prefix_case_iter_init(prefix_case_iter_t *cip, const char *pfx)
 	return 1;
 }
 
-static int
-prefix_case_iter_next(prefix_case_iter_t *cip)
+static int prefix_case_iter_next(prefix_case_iter_t *cip)
 {
 	unsigned long val, max, mask;
 	int i, nbits;
@@ -1049,8 +1017,7 @@ vg_prefix_context_set_case_insensitive(vg_context_t *vcp, int caseinsensitive)
 	((vg_prefix_context_t *) vcp)->vcp_caseinsensitive = caseinsensitive;
 }
 
-static void
-vg_prefix_context_clear_all_patterns(vg_context_t *vcp)
+static void vg_prefix_context_clear_all_patterns(vg_context_t *vcp)
 {
 	vg_prefix_context_t *vcpp = (vg_prefix_context_t *) vcp;
 	vg_prefix_t *vp;
@@ -1069,8 +1036,7 @@ vg_prefix_context_clear_all_patterns(vg_context_t *vcp)
 	BN_clear(vcpp->vcp_difficulty);
 }
 
-static void
-vg_prefix_context_free(vg_context_t *vcp)
+static void vg_prefix_context_free(vg_context_t *vcp)
 {
 	vg_prefix_context_t *vcpp = (vg_prefix_context_t *) vcp;
 	vg_prefix_context_clear_all_patterns(vcp);
@@ -1078,8 +1044,7 @@ vg_prefix_context_free(vg_context_t *vcp)
 	free(vcpp);
 }
 
-static void
-vg_prefix_context_next_difficulty(vg_prefix_context_t *vcpp,
+static void vg_prefix_context_next_difficulty(vg_prefix_context_t *vcpp,
 				  BIGNUM *bntmp, BIGNUM *bntmp2, BN_CTX *bnctx)
 {
 	char *dbuf;
@@ -1100,8 +1065,7 @@ vg_prefix_context_next_difficulty(vg_prefix_context_t *vcpp,
 	OPENSSL_free(dbuf);
 }
 
-static int
-vg_prefix_context_add_patterns(vg_context_t *vcp,
+static int vg_prefix_context_add_patterns(vg_context_t *vcp,
 			       const char ** const patterns, int npatterns)
 {
 	vg_prefix_context_t *vcpp = (vg_prefix_context_t *) vcp;
@@ -1221,8 +1185,7 @@ vg_prefix_context_add_patterns(vg_context_t *vcp,
 	return ret;
 }
 
-double
-vg_prefix_get_difficulty(int addrtype, const char *pattern)
+double vg_prefix_get_difficulty(int addrtype, const char *pattern)
 {
 	BN_CTX *bnctx;
 	BIGNUM *result, *bntmp;
@@ -1262,8 +1225,7 @@ vg_prefix_get_difficulty(int addrtype, const char *pattern)
 }
 
 
-static int
-vg_prefix_test(vg_exec_context_t *vxcp)
+static int vg_prefix_test(vg_exec_context_t *vxcp)
 {
 	vg_prefix_context_t *vcpp = (vg_prefix_context_t *) vxcp->vxc_vc;
 	vg_prefix_t *vp;
@@ -1318,8 +1280,7 @@ research:
 	return res;
 }
 
-static int
-vg_prefix_addr_sort(vg_context_t *vcp, void *buf)
+static int vg_prefix_addr_sort(vg_context_t *vcp, void *buf)
 {
 	vg_prefix_context_t *vcpp = (vg_prefix_context_t *) vcp;
 	vg_prefix_t *vp;
@@ -1354,8 +1315,7 @@ vg_prefix_addr_sort(vg_context_t *vcp, void *buf)
 	return npfx;
 }
 
-vg_context_t *
-vg_prefix_context_new(int addrtype, int privtype, int caseinsensitive)
+vg_context_t *vg_prefix_context_new(int addrtype, int privtype, int caseinsensitive)
 {
 	vg_prefix_context_t *vcpp;
 
@@ -1393,8 +1353,7 @@ typedef struct _vg_regex_context_s {
 	unsigned long		vcr_nalloc;
 } vg_regex_context_t;
 
-static int
-vg_regex_context_add_patterns(vg_context_t *vcp,
+static int vg_regex_context_add_patterns(vg_context_t *vcp,
 			      const char ** const patterns, int npatterns)
 {
 	vg_regex_context_t *vcrp = (vg_regex_context_t *) vcp;
@@ -1467,8 +1426,7 @@ vg_regex_context_add_patterns(vg_context_t *vcp,
 #endif // NO_PCRE
 }
 
-static void
-vg_regex_context_clear_all_patterns(vg_context_t *vcp)
+static void vg_regex_context_clear_all_patterns(vg_context_t *vcp)
 {
 	vg_regex_context_t *vcrp = (vg_regex_context_t *) vcp;
 	int i;
@@ -1483,8 +1441,7 @@ vg_regex_context_clear_all_patterns(vg_context_t *vcp)
 	vcrp->base.vc_found = 0;
 }
 
-static void
-vg_regex_context_free(vg_context_t *vcp)
+static void vg_regex_context_free(vg_context_t *vcp)
 {
 	vg_regex_context_t *vcrp = (vg_regex_context_t *) vcp;
 	vg_regex_context_clear_all_patterns(vcp);
@@ -1494,8 +1451,7 @@ vg_regex_context_free(vg_context_t *vcp)
 	free(vcrp);
 }
 
-static int
-vg_regex_test(vg_exec_context_t *vxcp)
+static int vg_regex_test(vg_exec_context_t *vxcp)
 {
 	vg_regex_context_t *vcrp = (vg_regex_context_t *) vxcp->vxc_vc;
 

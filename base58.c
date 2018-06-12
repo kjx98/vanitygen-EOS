@@ -54,12 +54,10 @@ bool b58dec(void *bin, size_t *binszp, const unsigned char *b58, size_t b58sz)
 
 	for ( ; i < b58sz; ++i)
 	{
-		if (b58u[i] & 0x80)
-			// High-bit set on invalid digit
-			return false;
-		if (b58digits_map[b58u[i]] == -1)
-			// Invalid base58 digit
-			return false;
+        // High-bit set on invalid digit
+		if (b58u[i] & 0x80) return false;
+        // Invalid base58 digit
+		if (b58digits_map[b58u[i]] == -1) return false;
 		c = (unsigned)b58digits_map[b58u[i]];
 		for (j = outisz; j--; )
 		{
@@ -67,12 +65,10 @@ bool b58dec(void *bin, size_t *binszp, const unsigned char *b58, size_t b58sz)
 			c = (t & 0x3f00000000) >> 32;
 			outi[j] = t & 0xffffffff;
 		}
-		if (c)
-			// Output number too big (carry to the next int32)
-			return false;
-		if (outi[0] & zeromask)
-			// Output number too big (last int32 filled too far)
-			return false;
+        // Output number too big (carry to the next int32)
+		if (c) return false;
+        // Output number too big (last int32 filled too far)
+		if (outi[0] & zeromask) return false;
 	}
 
 	j = 0;
@@ -142,8 +138,7 @@ bool b58enc(unsigned char *b58, size_t *b58sz, const void *data, size_t binsz)
 		return false;
 	}
 
-	if (zcount)
-		memset(b58, '1', zcount);
+	if (zcount) memset(b58, '1', zcount);
 	for (i = zcount; j < size; ++i, ++j)
 		b58[i] = b58digits_ordered[buf[j]];
 	b58[i] = '\0';
