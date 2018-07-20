@@ -22,7 +22,7 @@ Getting Started
 -----
 **Download the latest binary from: https://github.com/kjx98/vanitygen-EOS/releases !**
 Linux Binary (Compiled on 64bit Debian 18.04 Testing)
-Windows Binary (Compiled on Win10 64bit), not yet
+Windows Binary (Compiled on Win10 64bit), 32 Bits and OpenCL Binary not yet
 
 Extract the files,
 open a terminal/command prompt,
